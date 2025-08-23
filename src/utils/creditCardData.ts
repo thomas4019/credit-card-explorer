@@ -136,6 +136,6 @@ export const defaultSpend: Record<SpendCategory, number> = {
   hotels: 200,
   otherTravel: 167,
   groceries: 500,
-  gas: 300,
+  gas: 100,
   other: 1000,
 }
