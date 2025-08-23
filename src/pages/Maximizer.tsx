@@ -119,10 +119,15 @@ const Maximizer: React.FC = () => {
       const points = spendAmountAnnual * rate
       const value = points * pointValue[cardKey]
       
-      // Check if this card would be better than current best for this category
-      const currentBestValue = spendRows.find(row => row.key === category.key)?.value || 0
-      if (value > currentBestValue) {
-        additionalValue += (value - currentBestValue)
+      if (selectedCards.length === 0) {
+        // If no cards selected, this card provides the full value
+        additionalValue += value
+      } else {
+        // Check if this card would be better than current best for this category
+        const currentBestValue = spendRows.find(row => row.key === category.key)?.value || 0
+        if (value > currentBestValue) {
+          additionalValue += (value - currentBestValue)
+        }
       }
     })
     
