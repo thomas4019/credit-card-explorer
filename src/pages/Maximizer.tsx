@@ -42,12 +42,26 @@ const Maximizer: React.FC = () => {
     rate: number,
     points: number,
     value: number,
-    bestCard: CardKey,
+    bestCard: CardKey | undefined,
   }
 
   const spendRows: SpendRow[] = spendCategories.map((c) => {
     const spendAmountMonthly = spend[c.key]
     const spendAmountAnnual = spendAmountMonthly * 12
+    
+    if (selectedCards.length === 0) {
+      // If no cards selected, show $0 for all categories
+      return {
+        key: c.key,
+        label: c.label,
+        spend: spendAmountMonthly,
+        rate: 0,
+        points: 0,
+        value: 0,
+        bestCard: undefined,
+      }
+    }
+    
     // Find best card for this category
     let bestCard: CardKey = selectedCards[0]
     let bestValue = -Infinity
