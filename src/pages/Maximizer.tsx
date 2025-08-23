@@ -613,13 +613,37 @@ const Maximizer: React.FC = () => {
                         <div className="card-rate">
                           {showEffectiveRates ? (
                             `${(() => {
-                              const rate = categories[0].rate
+                              // Find min and max rates across all categories for this card
+                              const rates = categories.map(cat => cat.rate)
+                              const minRate = Math.min(...rates)
+                              const maxRate = Math.max(...rates)
                               const pointValue = getEffectivePointValue(cardKey as CardKey, selectedCards, pointValues)
-                              const effectiveRate = (rate * pointValue) / 100
-                              return `${(effectiveRate * 100) % 1 === 0 ? (effectiveRate * 100).toFixed(0) : (effectiveRate * 100).toFixed(1)}%`
-                            })()} cashback`
+                              
+                              if (minRate === maxRate) {
+                                // Single rate
+                                const effectiveRate = (minRate * pointValue) / 100
+                                return `${(effectiveRate * 100) % 1 === 0 ? (effectiveRate * 100).toFixed(0) : (effectiveRate * 100).toFixed(1)}% cashback`
+                              } else {
+                                // Range of rates
+                                const minEffective = (minRate * pointValue) / 100
+                                const maxEffective = (maxRate * pointValue) / 100
+                                const formatRate = (r: number) => r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)
+                                return `${formatRate(minEffective * 100)}-${formatRate(maxEffective * 100)}% cashback`
+                              }
+                            })()}`
                           ) : (
-                            `${categories[0].rate}x points`
+                            (() => {
+                              // Find min and max rates across all categories for this card
+                              const rates = categories.map(cat => cat.rate)
+                              const minRate = Math.min(...rates)
+                              const maxRate = Math.max(...rates)
+                              
+                              if (minRate === maxRate) {
+                                return `${minRate}x points`
+                              } else {
+                                return `${minRate}x-${maxRate}x points`
+                              }
+                            })()
                           )}
                         </div>
                       )}
