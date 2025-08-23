@@ -110,14 +110,14 @@ export const otherBenefits: Record<CardKey, number> = {
 }
 
 export const pointValue: Record<CardKey, number> = {
-  chase: 0.015,
-  amex: 0.015,
-  sapphire: 0.015,
-  sapphirereserve: 0.015,
-  citi: 0.01,
-  savor: 0.01,
-  venturex: 0.0125,
-  amexbluecash: 0.01,
+  chase: 1.5,
+  amex: 1.5,
+  sapphire: 1.5,
+  sapphirereserve: 1.5,
+  citi: 1.0,
+  savor: 1.0,
+  venturex: 1.25,
+  amexbluecash: 1.0,
 }
 
 export const spendCategories: { key: SpendCategory; label: string }[] = [

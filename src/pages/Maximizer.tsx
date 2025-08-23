@@ -14,6 +14,8 @@ import {
 const Maximizer: React.FC = () => {
   const [spend, setSpend] = useState<Record<SpendCategory, number>>(defaultSpend)
   const [selectedCards, setSelectedCards] = useState<CardKey[]>(['chase'])
+  const [assumptionsCollapsed, setAssumptionsCollapsed] = useState(true)
+  const [pointValues, setPointValues] = useState<Record<CardKey, number>>(pointValue)
 
   const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -70,7 +72,7 @@ const Maximizer: React.FC = () => {
     selectedCards.forEach((card) => {
       const rate = rewardRates[card][c.key]
       const points = spendAmountAnnual * rate
-      const value = points * pointValue[card]
+      const value = points * pointValues[card] / 100
       if (value > bestValue) {
         bestValue = value
         bestCard = card
@@ -131,7 +133,7 @@ const Maximizer: React.FC = () => {
       const spendAmountAnnual = spend[category.key] * 12
       const rate = rewardRates[cardKey][category.key]
       const points = spendAmountAnnual * rate
-      const value = points * pointValue[cardKey]
+      const value = points * pointValues[cardKey] / 100
       
       if (selectedCards.length === 0) {
         // If no cards selected, this card provides the full value
@@ -315,6 +317,61 @@ const Maximizer: React.FC = () => {
             </tfoot>
           </table>
         </div>
+      </div>
+
+      <div className="assumptions-section">
+        <div className="assumptions-header" onClick={() => setAssumptionsCollapsed(!assumptionsCollapsed)}>
+          <h3>Assumptions & Point Values</h3>
+          <span className={`collapse-icon ${assumptionsCollapsed ? 'collapsed' : 'expanded'}`}>
+            {assumptionsCollapsed ? '▼' : '▲'}
+          </span>
+        </div>
+        
+        {!assumptionsCollapsed && (
+          <div className="assumptions-content">
+            <p className="assumptions-description">
+              Adjust the point values for each credit card type. These values represent how much each point is worth in cents.
+            </p>
+                            <div className="point-values-grid">
+                  {cardOptions.map((card) => (
+                    <div key={card.key} className="point-value-item">
+                      <label className="point-value-label">
+                        {card.label}
+                      </label>
+                      <div className="point-value-input-row">
+                        <div className="point-value-input-wrapper">
+                          <span className="point-value-symbol">$</span>
+                                                  <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          className="point-value-input"
+                          value={pointValues[card.key]}
+                          onChange={(e) => {
+                            const newValue = parseFloat(e.target.value) || 0
+                            setPointValues(prev => ({
+                              ...prev,
+                              [card.key]: newValue
+                            }))
+                          }}
+                        />
+                        </div>
+                        <span className="point-value-note">cents per point</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+            <div className="assumptions-footer">
+              <button 
+                className="reset-button"
+                onClick={() => setPointValues(pointValue)}
+              >
+                Reset to Defaults
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="summary-section">
