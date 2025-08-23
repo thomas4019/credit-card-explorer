@@ -1,16 +1,33 @@
 export type SpendCategory = 'dining' | 'flights' | 'hotels' | 'otherTravel' | 'groceries' | 'gas' | 'other'
-export type CardKey = 'chase' | 'amex' | 'sapphire' | 'sapphirereserve' | 'citi' | 'savor' | 'venturex' | 'amexbluecash'
+export type CardKey = 'chase' | 'amex' | 'sapphire' | 'sapphirereserve' | 'citi' | 'citipremier' | 'savor' | 'venturex' | 'amexbluecash'
 
-export const cardOptions: { key: CardKey; label: string }[] = [
+// Cards that should be hidden from the maximizer interface
+// These cards will still have all their data available for calculations,
+// but won't appear in the card selection dropdown or card impact analysis
+export const hiddenCards: CardKey[] = ['citipremier']
+
+// All available cards (including hidden ones)
+export const allCardOptions: { key: CardKey; label: string }[] = [
   { key: 'chase', label: 'Chase Freedom Unlimited' },
   { key: 'amex', label: 'Amex Gold' },
   { key: 'sapphire', label: 'Chase Sapphire Preferred' },
   { key: 'sapphirereserve', label: 'Chase Sapphire Reserve' },
   { key: 'citi', label: 'Citibank Double Cash' },
+  { key: 'citipremier', label: 'Citi Premier' },
   { key: 'savor', label: 'Capital One Savor' },
   { key: 'venturex', label: 'Capital One Venture X' },
   { key: 'amexbluecash', label: 'Amex Blue Cash Preferred' },
 ]
+
+// Visible cards for the maximizer interface (filtered from hidden cards)
+export const cardOptions: { key: CardKey; label: string }[] = allCardOptions.filter(
+  card => !hiddenCards.includes(card.key)
+)
+
+// Utility function to check if a card is hidden
+export const isCardHidden = (cardKey: CardKey): boolean => {
+  return hiddenCards.includes(cardKey)
+}
 
 export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
   chase: {
@@ -58,6 +75,15 @@ export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
     gas: 2,
     other: 2,
   },
+  citipremier: {
+    dining: 3,
+    flights: 3,
+    hotels: 3,
+    otherTravel: 3,
+    groceries: 3,
+    gas: 3,
+    other: 1,
+  },
   savor: {
     dining: 3,
     flights: 1,
@@ -93,6 +119,7 @@ export const annualFees: Record<CardKey, number> = {
   sapphire: 99,
   sapphirereserve: 759,
   citi: 0,
+  citipremier: 95,
   savor: 0,
   venturex: 395,
   amexbluecash: 95,
@@ -104,6 +131,7 @@ export const otherBenefits: Record<CardKey, number> = {
   sapphire: 0,
   sapphirereserve: 300,
   citi: 0,
+  citipremier: 100,
   savor: 0,
   venturex: 400,
   amexbluecash: 0,
@@ -115,6 +143,7 @@ export const pointValue: Record<CardKey, number> = {
   sapphire: 1.5,
   sapphirereserve: 1.5,
   citi: 1.0,
+  citipremier: 1.85,
   savor: 1.0,
   venturex: 1.25,
   amexbluecash: 1.0,

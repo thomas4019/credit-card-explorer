@@ -15,11 +15,24 @@ describe('getEffectivePointValue', () => {
     expect(getEffectivePointValue('chase', ['chase', 'sapphire'], pointValue)).toBe(1.5)
   })
 
+  it('should return highest point value among Citi cards', () => {
+    expect(getEffectivePointValue('citi', ['citi'], pointValue)).toBe(1.0)
+    expect(getEffectivePointValue('citipremier', ['citi', 'citipremier'], pointValue)).toBe(1.85)
+    expect(getEffectivePointValue('citi', ['citi', 'citipremier'], pointValue)).toBe(1.85)
+  })
+
   it('should handle hypothetical Chase card scenarios', () => {
     // When calculating impact of adding Sapphire Preferred to existing Chase Freedom
-    const hypotheticalCards = ['chase', 'sapphire']
+    const hypotheticalCards: CardKey[] = ['chase', 'sapphire']
     expect(getEffectivePointValue('chase', ['chase'], pointValue, hypotheticalCards)).toBe(1.5)
     expect(getEffectivePointValue('sapphire', ['chase'], pointValue, hypotheticalCards)).toBe(1.5)
+  })
+
+  it('should handle hypothetical Citi card scenarios', () => {
+    // When calculating impact of adding Citi Premier to existing Citi Double Cash
+    const hypotheticalCards: CardKey[] = ['citi', 'citipremier']
+    expect(getEffectivePointValue('citi', ['citi'], pointValue, hypotheticalCards)).toBe(1.85)
+    expect(getEffectivePointValue('citipremier', ['citi'], pointValue, hypotheticalCards)).toBe(1.85)
   })
 })
 

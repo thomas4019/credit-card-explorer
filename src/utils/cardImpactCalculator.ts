@@ -34,6 +34,15 @@ export const getEffectivePointValue = (
       return Math.max(...chaseCards.map(card => pointValues[card]))
     }
   }
+  
+  if (['citi', 'citipremier'].includes(cardKey)) {
+    // Citi cards use the highest point value among selected Citi cards
+    const citiCards = cardsToCheck.filter(card => ['citi', 'citipremier'].includes(card))
+    if (citiCards.length > 0) {
+      return Math.max(...citiCards.map(card => pointValues[card]))
+    }
+  }
+  
   return pointValues[cardKey]
 }
 
