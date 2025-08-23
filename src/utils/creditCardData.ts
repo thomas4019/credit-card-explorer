@@ -110,7 +110,7 @@ export const otherBenefits: Record<CardKey, number> = {
 }
 
 export const pointValue: Record<CardKey, number> = {
-  chase: 1.5,
+  chase: 1.0,
   amex: 1.5,
   sapphire: 1.5,
   sapphirereserve: 1.5,

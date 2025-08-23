@@ -17,6 +17,48 @@ const Maximizer: React.FC = () => {
   const [assumptionsCollapsed, setAssumptionsCollapsed] = useState(true)
   const [pointValues, setPointValues] = useState<Record<CardKey, number>>(pointValue)
 
+  // Get effective point value for a card, considering Chase transferable points
+  const getEffectivePointValue = (cardKey: CardKey, cardSet: CardKey[] = selectedCards): number => {
+    if (['chase', 'sapphire', 'sapphirereserve'].includes(cardKey)) {
+      // Chase cards use the highest point value among the given card set
+      const chaseCards = cardSet.filter(card => ['chase', 'sapphire', 'sapphirereserve'].includes(card))
+      if (chaseCards.length > 0) {
+        return Math.max(...chaseCards.map(card => pointValues[card]))
+      }
+    }
+    return pointValues[cardKey]
+  }
+
+  // Calculate total value for a given set of cards
+  const calculateTotalValue = (cardSet: CardKey[]): number => {
+    if (cardSet.length === 0) return 0
+    
+    let totalValue = 0
+    
+    // Calculate rewards for each category
+    spendCategories.forEach((category) => {
+      const spendAmountAnnual = spend[category.key] * 12
+      
+      // Find best card for this category among the given card set
+      let bestValue = 0
+      cardSet.forEach((card) => {
+        const rate = rewardRates[card][category.key]
+        const points = spendAmountAnnual * rate
+        const value = points * getEffectivePointValue(card, cardSet) / 100
+        if (value > bestValue) {
+          bestValue = value
+        }
+      })
+      totalValue += bestValue
+    })
+    
+    // Subtract annual fees and add other benefits
+    const totalAnnualFees = cardSet.reduce((sum, card) => sum + annualFees[card], 0)
+    const totalOtherBenefits = cardSet.reduce((sum, card) => sum + otherBenefits[card], 0)
+    
+    return totalValue - totalAnnualFees + totalOtherBenefits
+  }
+
   const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -72,7 +114,7 @@ const Maximizer: React.FC = () => {
     selectedCards.forEach((card) => {
       const rate = rewardRates[card][c.key]
       const points = spendAmountAnnual * rate
-      const value = points * pointValues[card] / 100
+      const value = points * getEffectivePointValue(card) / 100
       if (value > bestValue) {
         bestValue = value
         bestCard = card
@@ -124,30 +166,14 @@ const Maximizer: React.FC = () => {
       return 0 // Card is already selected
     }
     
-    let additionalValue = 0
-    let additionalAnnualFee = annualFees[cardKey]
-    let additionalBenefits = otherBenefits[cardKey]
+    // Calculate current total value
+    const currentTotalValue = calculateTotalValue(selectedCards)
     
-    // Calculate additional rewards from this card
-    spendCategories.forEach((category) => {
-      const spendAmountAnnual = spend[category.key] * 12
-      const rate = rewardRates[cardKey][category.key]
-      const points = spendAmountAnnual * rate
-      const value = points * pointValues[cardKey] / 100
-      
-      if (selectedCards.length === 0) {
-        // If no cards selected, this card provides the full value
-        additionalValue += value
-      } else {
-        // Check if this card would be better than current best for this category
-        const currentBestValue = spendRows.find(row => row.key === category.key)?.value || 0
-        if (value > currentBestValue) {
-          additionalValue += (value - currentBestValue)
-        }
-      }
-    })
+    // Calculate total value with the new card
+    const newTotalValue = calculateTotalValue([...selectedCards, cardKey])
     
-    return additionalValue - additionalAnnualFee + additionalBenefits
+    // Return the difference
+    return newTotalValue - currentTotalValue
   }
 
   const cardImpactAnalysis = cardOptions.map((card) => ({
@@ -330,37 +356,51 @@ const Maximizer: React.FC = () => {
         {!assumptionsCollapsed && (
           <div className="assumptions-content">
             <p className="assumptions-description">
-              Adjust the point values for each credit card type. These values represent how much each point is worth in cents.
+              Adjust the point values for each credit card type. These values represent how much each point is worth in cents. 
+              Chase Freedom, Sapphire Preferred, and Sapphire Reserve points are transferrable and will use the highest value among selected Chase cards.
             </p>
                             <div className="point-values-grid">
-                  {cardOptions.map((card) => (
-                    <div key={card.key} className="point-value-item">
-                      <label className="point-value-label">
-                        {card.label}
-                      </label>
-                      <div className="point-value-input-row">
-                        <div className="point-value-input-wrapper">
-                          <span className="point-value-symbol">$</span>
-                                                  <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          className="point-value-input"
-                          value={pointValues[card.key]}
-                          onChange={(e) => {
-                            const newValue = parseFloat(e.target.value) || 0
-                            setPointValues(prev => ({
-                              ...prev,
-                              [card.key]: newValue
-                            }))
-                          }}
-                        />
+                                    {cardOptions.map((card) => {
+                    const isChaseCard = ['chase', 'sapphire', 'sapphirereserve'].includes(card.key)
+                    const effectiveValue = getEffectivePointValue(card.key)
+                    const showEffectiveValue = isChaseCard && selectedCards.some(selectedCard => 
+                      ['chase', 'sapphire', 'sapphirereserve'].includes(selectedCard)
+                    )
+                    
+                    return (
+                      <div key={card.key} className="point-value-item">
+                        <label className="point-value-label">
+                          {card.label}
+                        </label>
+                        <div className="point-value-input-row">
+                          <div className="point-value-input-wrapper">
+                            <span className="point-value-symbol">$</span>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              max="100"
+                              className="point-value-input"
+                              value={pointValues[card.key]}
+                              onChange={(e) => {
+                                const newValue = parseFloat(e.target.value) || 0
+                                setPointValues(prev => ({
+                                  ...prev,
+                                  [card.key]: newValue
+                                }))
+                              }}
+                            />
+                          </div>
+                          <span className="point-value-note">cents per point</span>
                         </div>
-                        <span className="point-value-note">cents per point</span>
+                        {showEffectiveValue && effectiveValue > pointValues[card.key] && (
+                          <div className="effective-value-note">
+                            Effective value: {effectiveValue} cents (highest among Chase cards)
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
             <div className="assumptions-footer">
               <button 
