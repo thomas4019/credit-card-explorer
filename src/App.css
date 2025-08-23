@@ -52,7 +52,7 @@
 
 .maximizer-header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .page-title {
@@ -75,6 +75,53 @@
   margin: 0 auto;
 }
 
+/* Top Summary Section */
+.top-summary-section {
+  margin-bottom: 1rem;
+}
+
+.top-summary-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(100, 108, 255, 0.08);
+}
+
+.top-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.top-summary-item {
+  text-align: center;
+  padding: 0.75rem;
+}
+
+.top-summary-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.top-summary-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.top-summary-value.positive {
+  color: #059669;
+}
+
+.top-summary-value.negative {
+  color: #dc2626;
+}
+
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;
@@ -93,7 +140,7 @@
 
 .card-selection-section {
   background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 16px;
   border: 1px solid #e0e7ff;
   box-shadow: 0 4px 20px rgba(100, 108, 255, 0.08);
@@ -110,7 +157,7 @@
   background: #fff;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -726,6 +773,11 @@
     font-size: 2rem;
   }
   
+  .top-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
   .summary-card {
     min-width: 100%;
   }
@@ -744,6 +796,11 @@
   
   .page-title {
     font-size: 1.75rem;
+  }
+  
+  .top-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
   .card-selection-section {

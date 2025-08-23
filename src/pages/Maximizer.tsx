@@ -242,6 +242,31 @@ const Maximizer: React.FC = () => {
         </p>
       </div>
 
+      <div className="top-summary-section">
+        <div className="top-summary-card">
+          <div className="top-summary-grid">
+            <div className="top-summary-item">
+              <div className="top-summary-label">Monthly Spending</div>
+              <div className="top-summary-value">{formatCurrency(totalMonthlySpend)}</div>
+            </div>
+            <div className="top-summary-item">
+              <div className="top-summary-label">Annual Points</div>
+              <div className="top-summary-value">{totalPoints.toLocaleString()}</div>
+            </div>
+            <div className="top-summary-item">
+              <div className="top-summary-label">Net Annual Value</div>
+              <div className={`top-summary-value ${totalValue >= 0 ? 'positive' : 'negative'}`}>
+                {formatCurrency(totalValue)}
+              </div>
+            </div>
+            <div className="top-summary-item">
+              <div className="top-summary-label">Cards Selected</div>
+              <div className="top-summary-value">{selectedCards.length}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="card-selection-section">
         <h2 className="section-title">Select Your Cards</h2>
         <p className="section-subtitle">Click on cards to select/deselect them and see their impact on your annual earnings</p>

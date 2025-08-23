@@ -132,10 +132,10 @@ export const spendCategories: { key: SpendCategory; label: string }[] = [
 
 export const defaultSpend: Record<SpendCategory, number> = {
   dining: 500,
-  flights: 300,
-  hotels: 200,
-  otherTravel: 167,
-  groceries: 500,
+  flights: 100,
+  hotels: 150,
   gas: 100,
+  otherTravel: 50,
+  groceries: 500,
   other: 1000,
 }
