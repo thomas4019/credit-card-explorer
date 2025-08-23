@@ -12,51 +12,40 @@ import {
 } from '../utils/creditCardData'
 
 const Maximizer: React.FC = () => {
-  const [spend, setSpend] = useState<Record<SpendCategory, number>>(defaultSpend)
+  const [spend, setSpend] = useState<Record<SpendCategory, number>>({
+    dining: 0,
+    flights: 0,
+    hotels: 0,
+    otherTravel: 0,
+    groceries: 0,
+    gas: 0,
+    other: 0,
+  })
   const [selectedCards, setSelectedCards] = useState<CardKey[]>(['chase'])
   const [assumptionsCollapsed, setAssumptionsCollapsed] = useState(true)
   const [pointValues, setPointValues] = useState<Record<CardKey, number>>(pointValue)
+  
+  // Local state for input values to ensure proper control
+  const [inputValues, setInputValues] = useState<Record<SpendCategory, string>>({
+    dining: '',
+    flights: '',
+    hotels: '',
+    otherTravel: '',
+    groceries: '',
+    gas: '',
+    other: '',
+  })
 
   // Get effective point value for a card, considering Chase transferable points
-  const getEffectivePointValue = (cardKey: CardKey, cardSet: CardKey[] = selectedCards): number => {
+  const getEffectivePointValue = (cardKey: CardKey): number => {
     if (['chase', 'sapphire', 'sapphirereserve'].includes(cardKey)) {
-      // Chase cards use the highest point value among the given card set
-      const chaseCards = cardSet.filter(card => ['chase', 'sapphire', 'sapphirereserve'].includes(card))
+      // Chase cards use the highest point value among selected Chase cards
+      const chaseCards = selectedCards.filter(card => ['chase', 'sapphire', 'sapphirereserve'].includes(card))
       if (chaseCards.length > 0) {
         return Math.max(...chaseCards.map(card => pointValues[card]))
       }
     }
     return pointValues[cardKey]
-  }
-
-  // Calculate total value for a given set of cards
-  const calculateTotalValue = (cardSet: CardKey[]): number => {
-    if (cardSet.length === 0) return 0
-    
-    let totalValue = 0
-    
-    // Calculate rewards for each category
-    spendCategories.forEach((category) => {
-      const spendAmountAnnual = spend[category.key] * 12
-      
-      // Find best card for this category among the given card set
-      let bestValue = 0
-      cardSet.forEach((card) => {
-        const rate = rewardRates[card][category.key]
-        const points = spendAmountAnnual * rate
-        const value = points * getEffectivePointValue(card, cardSet) / 100
-        if (value > bestValue) {
-          bestValue = value
-        }
-      })
-      totalValue += bestValue
-    })
-    
-    // Subtract annual fees and add other benefits
-    const totalAnnualFees = cardSet.reduce((sum, card) => sum + annualFees[card], 0)
-    const totalOtherBenefits = cardSet.reduce((sum, card) => sum + otherBenefits[card], 0)
-    
-    return totalValue - totalAnnualFees + totalOtherBenefits
   }
 
   const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -75,7 +64,15 @@ const Maximizer: React.FC = () => {
   const handleSpendChange = (category: SpendCategory) => (
     event: ChangeEvent<HTMLInputElement>,
   ) => {
-    setSpend((prev) => ({ ...prev, [category]: parseToNumber(event.target.value) }))
+    const value = event.target.value
+    setInputValues(prev => ({ ...prev, [category]: value }))
+    
+    if (value === '') {
+      setSpend((prev) => ({ ...prev, [category]: 0 }))
+    } else {
+      const parsed = parseToNumber(value)
+      setSpend((prev) => ({ ...prev, [category]: parsed }))
+    }
   }
   
   // For each category, find the best card among selectedCards
@@ -166,14 +163,30 @@ const Maximizer: React.FC = () => {
       return 0 // Card is already selected
     }
     
-    // Calculate current total value
-    const currentTotalValue = calculateTotalValue(selectedCards)
+    let additionalValue = 0
+    let additionalAnnualFee = annualFees[cardKey]
+    let additionalBenefits = otherBenefits[cardKey]
     
-    // Calculate total value with the new card
-    const newTotalValue = calculateTotalValue([...selectedCards, cardKey])
+    // Calculate additional rewards from this card
+    spendCategories.forEach((category) => {
+      const spendAmountAnnual = spend[category.key] * 12
+      const rate = rewardRates[cardKey][category.key]
+      const points = spendAmountAnnual * rate
+      const value = points * getEffectivePointValue(cardKey) / 100
+      
+      if (selectedCards.length === 0) {
+        // If no cards selected, this card provides the full value
+        additionalValue += value
+      } else {
+        // Check if this card would be better than current best for this category
+        const currentBestValue = spendRows.find(row => row.key === category.key)?.value || 0
+        if (value > currentBestValue) {
+          additionalValue += (value - currentBestValue)
+        }
+      }
+    })
     
-    // Return the difference
-    return newTotalValue - currentTotalValue
+    return additionalValue - additionalAnnualFee + additionalBenefits
   }
 
   const cardImpactAnalysis = cardOptions.map((card) => ({
@@ -182,13 +195,135 @@ const Maximizer: React.FC = () => {
     isSelected: selectedCards.includes(card.key)
   }))
 
+  // Check if user has filled out all spending categories
+  const hasFilledAllCategories = Object.values(spend).every(amount => amount > 0)
+
+  // Welcome screen when not all categories are filled
+  if (!hasFilledAllCategories) {
+    return (
+      <div className="maximizer-container">
+        <div className="welcome-section">
+          <div className="welcome-card">
+            <div className="welcome-icon">💳</div>
+            <h1 className="welcome-title">Welcome to the Credit Card Rewards Maximizer!</h1>
+            <p className="welcome-description">
+              To get started, please enter your approximate monthly spending in each category below. 
+              This will help us calculate which credit cards will give you the most rewards.
+            </p>
+            
+            <div className="spend-input-section">
+              <div className="input-instructions">
+                <div className="instruction-icon">💡</div>
+                <div className="instruction-text">
+                  <strong>Enter your monthly spending</strong> for each category below. 
+                  Don't worry about being exact - rough estimates work great!
+                </div>
+              </div>
+
+              <div className="table-container">
+                <table className="spend-table">
+                  <thead>
+                    <tr>
+                      <th className="header-category">Category</th>
+                      <th className="header-spend">
+                        Monthly Spend
+                        <span className="header-note">(enter amount)</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {spendCategories.map((category) => (
+                      <tr key={category.key} className="spend-row">
+                        <th scope="row" className="category-label">
+                          {category.label}
+                        </th>
+                        <td className="spend-input-cell">
+                          <div className="input-wrapper">
+                            <span className="currency-symbol">$</span>
+                            <input
+                              className="spend-input"
+                              id={category.key}
+                              name={category.key}
+                              type="number"
+                              min={0}
+                              step={10}
+                              inputMode="numeric"
+                              value={inputValues[category.key] || ''}
+                              onChange={handleSpendChange(category.key)}
+                              aria-labelledby={`cat-${category.key}`}
+                              placeholder="0"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="welcome-actions">
+                <button 
+                  className="view-cards-button"
+                  onClick={() => {
+                    const quickValues = {
+                      dining: 100,
+                      flights: 50,
+                      hotels: 75,
+                      otherTravel: 25,
+                      groceries: 200,
+                      gas: 80,
+                      other: 300,
+                    }
+                    setSpend(quickValues)
+                    setInputValues({
+                      dining: quickValues.dining.toString(),
+                      flights: quickValues.flights.toString(),
+                      hotels: quickValues.hotels.toString(),
+                      otherTravel: quickValues.otherTravel.toString(),
+                      groceries: quickValues.groceries.toString(),
+                      gas: quickValues.gas.toString(),
+                      other: quickValues.other.toString(),
+                    })
+                  }}
+                >
+                  View Cards Options
+                </button>
+                <span className="welcome-or">OR</span>
+                <button 
+                  className="load-defaults-button"
+                  onClick={() => {
+                    setSpend(defaultSpend)
+                    setInputValues({
+                      dining: defaultSpend.dining.toString(),
+                      flights: defaultSpend.flights.toString(),
+                      hotels: defaultSpend.hotels.toString(),
+                      otherTravel: defaultSpend.otherTravel.toString(),
+                      groceries: defaultSpend.groceries.toString(),
+                      gas: defaultSpend.gas.toString(),
+                      other: defaultSpend.other.toString(),
+                    })
+                  }}
+                >
+                  View Example Spending
+                </button>
+                <p className="welcome-note">
+                  Fill out all categories above to see your personalized rewards analysis
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const renderSpendRow = (row: typeof allRows[number]) => (
     <tr key={row.key} className={`spend-row ${row.key === 'annual-fee' ? 'annual-fee-row' : row.key === 'other-benefits' ? 'benefits-row' : 'category-row'}`}>
       <th scope="row" id={`cat-${row.key}`} className="category-label">
         {row.label}
       </th>
       <td className="spend-input-cell">
-        {row.spend !== '' ? (
+        {row.key !== 'annual-fee' && row.key !== 'other-benefits' ? (
           <div className="input-wrapper">
             <span className="currency-symbol">$</span>
             <input
@@ -199,7 +334,7 @@ const Maximizer: React.FC = () => {
               min={0}
               step={10}
               inputMode="numeric"
-              value={row.spend}
+              value={inputValues[row.key as SpendCategory] || ''}
               onChange={handleSpendChange(row.key as SpendCategory)}
               aria-labelledby={`cat-${row.key}`}
             />
@@ -321,10 +456,10 @@ const Maximizer: React.FC = () => {
       <div className="spend-input-section">
         <div className="input-instructions">
           <div className="instruction-icon">💡</div>
-          <div className="instruction-text">
-            <strong>Enter your monthly spending</strong> for each category below. 
-            All calculations and rewards are shown on an annual basis.
-          </div>
+                      <div className="instruction-text">
+              <strong>Adjust your monthly spending</strong> for each category below. 
+              All calculations and rewards are shown on an annual basis.
+            </div>
         </div>
 
         <div className="table-container">
