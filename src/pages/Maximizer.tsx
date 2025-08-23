@@ -10,6 +10,7 @@ import {
   spendCategories,
   defaultSpend,
 } from '../utils/creditCardData'
+import { calculateCardImpact as calculateCardImpactUtil, calculateSpendRows, getEffectivePointValue } from '../utils/cardImpactCalculator'
 
 const Maximizer: React.FC = () => {
   const [spend, setSpend] = useState<Record<SpendCategory, number>>({
@@ -36,17 +37,7 @@ const Maximizer: React.FC = () => {
     other: '',
   })
 
-  // Get effective point value for a card, considering Chase transferable points
-  const getEffectivePointValue = (cardKey: CardKey): number => {
-    if (['chase', 'sapphire', 'sapphirereserve'].includes(cardKey)) {
-      // Chase cards use the highest point value among selected Chase cards
-      const chaseCards = selectedCards.filter(card => ['chase', 'sapphire', 'sapphirereserve'].includes(card))
-      if (chaseCards.length > 0) {
-        return Math.max(...chaseCards.map(card => pointValues[card]))
-      }
-    }
-    return pointValues[cardKey]
-  }
+
 
   const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -86,49 +77,7 @@ const Maximizer: React.FC = () => {
     bestCard: CardKey | undefined,
   }
 
-  const spendRows: SpendRow[] = spendCategories.map((c) => {
-    const spendAmountMonthly = spend[c.key]
-    const spendAmountAnnual = spendAmountMonthly * 12
-    
-    if (selectedCards.length === 0) {
-      // If no cards selected, show $0 for all categories
-      return {
-        key: c.key,
-        label: c.label,
-        spend: spendAmountMonthly,
-        rate: 0,
-        points: 0,
-        value: 0,
-        bestCard: undefined,
-      }
-    }
-    
-    // Find best card for this category
-    let bestCard: CardKey = selectedCards[0]
-    let bestValue = -Infinity
-    let bestRate = 0
-    let bestPoints = 0
-    selectedCards.forEach((card) => {
-      const rate = rewardRates[card][c.key]
-      const points = spendAmountAnnual * rate
-      const value = points * getEffectivePointValue(card) / 100
-      if (value > bestValue) {
-        bestValue = value
-        bestCard = card
-        bestRate = rate
-        bestPoints = points
-      }
-    })
-    return {
-      key: c.key,
-      label: c.label,
-      spend: spendAmountMonthly,
-      rate: bestRate,
-      points: bestPoints,
-      value: bestValue,
-      bestCard,
-    }
-  })
+  const spendRows: SpendRow[] = calculateSpendRows(spend, selectedCards, pointValues)
 
   // Add annual fee row (sum for all selected cards)
   const annualFeeRow = {
@@ -159,34 +108,7 @@ const Maximizer: React.FC = () => {
 
   // Calculate net earnings change if each card were added
   const calculateCardImpact = (cardKey: CardKey) => {
-    if (selectedCards.includes(cardKey)) {
-      return 0 // Card is already selected
-    }
-    
-    let additionalValue = 0
-    let additionalAnnualFee = annualFees[cardKey]
-    let additionalBenefits = otherBenefits[cardKey]
-    
-    // Calculate additional rewards from this card
-    spendCategories.forEach((category) => {
-      const spendAmountAnnual = spend[category.key] * 12
-      const rate = rewardRates[cardKey][category.key]
-      const points = spendAmountAnnual * rate
-      const value = points * getEffectivePointValue(cardKey) / 100
-      
-      if (selectedCards.length === 0) {
-        // If no cards selected, this card provides the full value
-        additionalValue += value
-      } else {
-        // Check if this card would be better than current best for this category
-        const currentBestValue = spendRows.find(row => row.key === category.key)?.value || 0
-        if (value > currentBestValue) {
-          additionalValue += (value - currentBestValue)
-        }
-      }
-    })
-    
-    return additionalValue - additionalAnnualFee + additionalBenefits
+    return calculateCardImpactUtil(cardKey, spend, selectedCards, pointValues)
   }
 
   const cardImpactAnalysis = cardOptions.map((card) => ({
@@ -522,7 +444,7 @@ const Maximizer: React.FC = () => {
                             <div className="point-values-grid">
                                     {cardOptions.map((card) => {
                     const isChaseCard = ['chase', 'sapphire', 'sapphirereserve'].includes(card.key)
-                    const effectiveValue = getEffectivePointValue(card.key)
+                    const effectiveValue = getEffectivePointValue(card.key, selectedCards, pointValues)
                     const showEffectiveValue = isChaseCard && selectedCards.some(selectedCard => 
                       ['chase', 'sapphire', 'sapphirereserve'].includes(selectedCard)
                     )
