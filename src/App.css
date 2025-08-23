@@ -289,6 +289,50 @@
   line-height: 1.5;
 }
 
+/* Rate Toggle Section */
+.rate-toggle-section {
+  background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(251, 146, 60, 0.08);
+}
+
+.rate-toggle-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rate-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #92400e;
+}
+
+.rate-toggle-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: #f59e0b;
+  cursor: pointer;
+}
+
+.rate-toggle-text {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.rate-toggle-description {
+  font-size: 0.875rem;
+  color: #a16207;
+  font-style: italic;
+  margin-left: 2rem;
+}
+
 .table-container {
   overflow-x: auto;
   padding: 0;

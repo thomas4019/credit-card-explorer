@@ -25,6 +25,7 @@ const Maximizer: React.FC = () => {
   const [selectedCards, setSelectedCards] = useState<CardKey[]>(['chase'])
   const [assumptionsCollapsed, setAssumptionsCollapsed] = useState(true)
   const [pointValues, setPointValues] = useState<Record<CardKey, number>>(pointValue)
+  const [showEffectiveRates, setShowEffectiveRates] = useState(false)
   
   // Local state for input values to ensure proper control
   const [inputValues, setInputValues] = useState<Record<SpendCategory, string>>({
@@ -265,7 +266,15 @@ const Maximizer: React.FC = () => {
       </td>
       <td className="rate-cell">
         {row.rate !== '' ? (
-          <span className="rate-badge">{row.rate}x</span>
+          <span className="rate-badge">
+            {showEffectiveRates && row.bestCard && typeof row.rate === 'number' ? (
+              <>
+                {(row.rate * getEffectivePointValue(row.bestCard as CardKey, selectedCards, pointValues)).toFixed(1)}%
+              </>
+            ) : (
+              `${row.rate}x`
+            )}
+          </span>
         ) : ''}
       </td>
       <td className="points-cell">
@@ -378,10 +387,32 @@ const Maximizer: React.FC = () => {
       <div className="spend-input-section">
         <div className="input-instructions">
           <div className="instruction-icon">💡</div>
-                      <div className="instruction-text">
-              <strong>Adjust your monthly spending</strong> for each category below. 
-              All calculations and rewards are shown on an annual basis.
-            </div>
+          <div className="instruction-text">
+            <strong>Adjust your monthly spending</strong> for each category below. 
+            All calculations and rewards are shown on an annual basis.
+          </div>
+        </div>
+
+        <div className="rate-toggle-section">
+          <div className="rate-toggle-wrapper">
+            <label className="rate-toggle-label">
+              <input
+                type="checkbox"
+                checked={showEffectiveRates}
+                onChange={(e) => setShowEffectiveRates(e.target.checked)}
+                className="rate-toggle-checkbox"
+              />
+              <span className="rate-toggle-text">
+                Show effective cashback rates (points × value)
+              </span>
+              <span className="rate-toggle-description">
+                {showEffectiveRates
+                    ? "4x points × 1.5¢ = 6% earnings"
+                    : "4x points × 1.5¢ = 6% earnings"
+                }
+              </span>
+            </label>
+          </div>
         </div>
 
         <div className="table-container">
@@ -393,7 +424,9 @@ const Maximizer: React.FC = () => {
                   Monthly Spend
                   <span className="header-note">(enter amount)</span>
                 </th>
-                <th className="header-rate">Reward Rate</th>
+                <th className="header-rate">
+                  {showEffectiveRates ? 'Effective Cashback' : 'Reward Rate'}
+                </th>
                 <th className="header-points">Annual Points</th>
                 <th className="header-value">Annual Value</th>
                 <th className="header-card">Best Card</th>

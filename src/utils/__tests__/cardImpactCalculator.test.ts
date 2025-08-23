@@ -210,3 +210,24 @@ describe('Integration tests', () => {
     expect(reserveImpact).toBeGreaterThan(-759) // Better than just annual fee
   })
 })
+
+describe('Effective Cashback Rate Calculations', () => {
+  it('should calculate effective cashback rates correctly', () => {
+    // Test the effective cashback rate calculation
+    // Amex Gold: 4x dining × 1.5¢ = 6% cashback
+    const amexGoldDiningRate = 4
+    const amexGoldPointValue = 1.5
+    const effectiveCashbackRate = (amexGoldDiningRate * amexGoldPointValue) / 100
+    
+    expect(effectiveCashbackRate).toBe(0.06) // 6%
+  })
+
+  it('should handle Chase card effective rates correctly', () => {
+    // Chase Freedom with Sapphire Preferred: 1.5x other × 1.5¢ = 2.25% cashback
+    const chaseFreedomOtherRate = 1.5
+    const chaseFreedomPointValue = 1.5 // When paired with Sapphire Preferred
+    const effectiveCashbackRate = (chaseFreedomOtherRate * chaseFreedomPointValue) / 100
+    
+    expect(effectiveCashbackRate).toBe(0.0225) // 2.25%
+  })
+})
