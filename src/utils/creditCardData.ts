@@ -1,5 +1,5 @@
-export type SpendCategory = 'dining' | 'flights' | 'hotels' | 'otherTravel' | 'groceries' | 'other'
-export type CardKey = 'chase' | 'amex' | 'sapphire' | 'sapphirereserve' | 'citi' | 'savor' | 'venturex'
+export type SpendCategory = 'dining' | 'flights' | 'hotels' | 'otherTravel' | 'groceries' | 'gas' | 'other'
+export type CardKey = 'chase' | 'amex' | 'sapphire' | 'sapphirereserve' | 'citi' | 'savor' | 'venturex' | 'amexbluecash'
 
 export const cardOptions: { key: CardKey; label: string }[] = [
   { key: 'chase', label: 'Chase Freedom Unlimited' },
@@ -9,6 +9,7 @@ export const cardOptions: { key: CardKey; label: string }[] = [
   { key: 'citi', label: 'Citibank Double Cash' },
   { key: 'savor', label: 'Capital One Savor' },
   { key: 'venturex', label: 'Capital One Venture X' },
+  { key: 'amexbluecash', label: 'Amex Blue Cash Preferred' },
 ]
 
 export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
@@ -18,6 +19,7 @@ export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
     hotels: 1.5,
     otherTravel: 1.5,
     groceries: 1.5,
+    gas: 1.5,
     other: 1.5,
   },
   amex: {
@@ -26,6 +28,7 @@ export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
     hotels: 1,
     otherTravel: 1,
     groceries: 4,
+    gas: 1,
     other: 1,
   },
   sapphire: {
@@ -34,6 +37,7 @@ export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
     hotels: 2,
     otherTravel: 2,
     groceries: 1,
+    gas: 1,
     other: 1,
   },
   sapphirereserve: {
@@ -42,6 +46,7 @@ export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
     hotels: 4,
     otherTravel: 1,
     groceries: 1,
+    gas: 1,
     other: 1,
   },
   citi: {
@@ -50,6 +55,7 @@ export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
     hotels: 2,
     otherTravel: 2,
     groceries: 2,
+    gas: 2,
     other: 2,
   },
   savor: {
@@ -58,6 +64,7 @@ export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
     hotels: 1,
     otherTravel: 1,
     groceries: 3,
+    gas: 1,
     other: 1,
   },
   venturex: {
@@ -66,7 +73,17 @@ export const rewardRates: Record<CardKey, Record<SpendCategory, number>> = {
     hotels: 2,
     otherTravel: 2,
     groceries: 2,
+    gas: 2,
     other: 2,
+  },
+  amexbluecash: {
+    dining: 1,
+    flights: 1,
+    hotels: 1,
+    otherTravel: 3,
+    groceries: 6,
+    gas: 3,
+    other: 1,
   },
 }
 
@@ -78,6 +95,7 @@ export const annualFees: Record<CardKey, number> = {
   citi: 0,
   savor: 0,
   venturex: 395,
+  amexbluecash: 95,
 }
 
 export const otherBenefits: Record<CardKey, number> = {
@@ -88,6 +106,7 @@ export const otherBenefits: Record<CardKey, number> = {
   citi: 0,
   savor: 0,
   venturex: 400,
+  amexbluecash: 0,
 }
 
 export const pointValue: Record<CardKey, number> = {
@@ -98,6 +117,7 @@ export const pointValue: Record<CardKey, number> = {
   citi: 0.01,
   savor: 0.01,
   venturex: 0.0125,
+  amexbluecash: 0.01,
 }
 
 export const spendCategories: { key: SpendCategory; label: string }[] = [
@@ -106,6 +126,7 @@ export const spendCategories: { key: SpendCategory; label: string }[] = [
   { key: 'hotels', label: 'Hotels' },
   { key: 'otherTravel', label: 'Other Travel' },
   { key: 'groceries', label: 'Groceries' },
+  { key: 'gas', label: 'Gas' },
   { key: 'other', label: 'Other' },
 ]
 
@@ -115,5 +136,6 @@ export const defaultSpend: Record<SpendCategory, number> = {
   hotels: 200,
   otherTravel: 167,
   groceries: 500,
+  gas: 300,
   other: 1000,
 }

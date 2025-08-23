@@ -102,6 +102,39 @@ const Maximizer: React.FC = () => {
   const totalMonthlySpend = allRows.reduce((sum, row) => sum + (typeof row.spend === 'number' ? row.spend : 0), 0)
   const totalPoints = allRows.reduce((sum, row) => sum + (typeof row.points === 'number' ? row.points : 0), 0)
 
+  // Calculate net earnings change if each card were added
+  const calculateCardImpact = (cardKey: CardKey) => {
+    if (selectedCards.includes(cardKey)) {
+      return 0 // Card is already selected
+    }
+    
+    let additionalValue = 0
+    let additionalAnnualFee = annualFees[cardKey]
+    let additionalBenefits = otherBenefits[cardKey]
+    
+    // Calculate additional rewards from this card
+    spendCategories.forEach((category) => {
+      const spendAmountAnnual = spend[category.key] * 12
+      const rate = rewardRates[cardKey][category.key]
+      const points = spendAmountAnnual * rate
+      const value = points * pointValue[cardKey]
+      
+      // Check if this card would be better than current best for this category
+      const currentBestValue = spendRows.find(row => row.key === category.key)?.value || 0
+      if (value > currentBestValue) {
+        additionalValue += (value - currentBestValue)
+      }
+    })
+    
+    return additionalValue - additionalAnnualFee + additionalBenefits
+  }
+
+  const cardImpactAnalysis = cardOptions.map((card) => ({
+    ...card,
+    impact: calculateCardImpact(card.key),
+    isSelected: selectedCards.includes(card.key)
+  }))
+
   const renderSpendRow = (row: typeof allRows[number]) => (
     <tr key={row.key} className={`spend-row ${row.key === 'annual-fee' ? 'annual-fee-row' : row.key === 'other-benefits' ? 'benefits-row' : 'category-row'}`}>
       <th scope="row" id={`cat-${row.key}`} className="category-label">
@@ -164,30 +197,52 @@ const Maximizer: React.FC = () => {
 
       <div className="card-selection-section">
         <h2 className="section-title">Select Your Cards</h2>
-        <div className="card-toggle-group">
-          {cardOptions.map((card) => {
-            const isSelected = selectedCards.includes(card.key)
-            return (
-              <label
-                key={card.key}
-                className={`card-checkbox-label${isSelected ? ' selected' : ''}`}
-                tabIndex={0}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => {
-                    setSelectedCards((prev) =>
-                      prev.includes(card.key)
-                        ? prev.filter((k) => k !== card.key)
-                        : [...prev, card.key]
-                    )
-                  }}
-                />
-                <span className="card-name">{card.label}</span>
-              </label>
-            )
-          })}
+        <p className="section-subtitle">Click on cards to select/deselect them and see their impact on your annual earnings</p>
+        
+        <div className="impact-grid">
+          {cardImpactAnalysis.map((card) => (
+            <div 
+              key={card.key} 
+              className={`impact-card ${card.isSelected ? 'selected' : ''}`}
+              onClick={() => {
+                setSelectedCards((prev) =>
+                  prev.includes(card.key)
+                    ? prev.filter((k) => k !== card.key)
+                    : [...prev, card.key]
+                )
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setSelectedCards((prev) =>
+                    prev.includes(card.key)
+                      ? prev.filter((k) => k !== card.key)
+                      : [...prev, card.key]
+                  )
+                }
+              }}
+            >
+              <div className="impact-card-header">
+                <span className="impact-card-name">{card.label}</span>
+                {card.isSelected && <span className="selected-badge">Selected</span>}
+              </div>
+              <div className="impact-value">
+                {card.isSelected ? (
+                  <span className="current-value">Currently contributing</span>
+                ) : (
+                  <>
+                    <span className="impact-label">Would add:</span>
+                    <span className={`impact-amount ${card.impact >= 0 ? 'positive' : 'negative'}`}>
+                      {formatCurrency(card.impact)}
+                    </span>
+                    <span className="impact-period">/year</span>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
