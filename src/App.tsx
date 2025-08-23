@@ -6,15 +6,17 @@ import CapitalOnePointsValue from './CapitalOnePointsValue'
 import StoreCardsTable from './StoreCardsTable';
 import AirlineCardsTable from './AirlineCardsTable';
 import HotelCardsTable from './HotelCardsTable';
+import WhatMakesCardGood from './WhatMakesCardGood';
 
 const PAGES = [
   { key: 'maximizer', label: 'Maximizer' },
+  { key: 'whatmakesgood', label: 'What Makes a Card Good' },
   { key: 'chase', label: 'Chase Points Value' },
   { key: 'amex', label: 'Amex Points Value' },
   { key: 'capitalone', label: 'Capital One Points Value' },
-  { key: 'storecards', label: 'Store Credit Cards' }, // NEW TAB
-  { key: 'airlinecards', label: 'Airline Credit Cards' }, // NEW TAB
-  { key: 'hotelcards', label: 'Hotel Credit Cards' }, // NEW TAB
+  { key: 'storecards', label: 'Store Credit Cards' },
+  { key: 'airlinecards', label: 'Airline Credit Cards' },
+  { key: 'hotelcards', label: 'Hotel Credit Cards' },
 ] as const;
 type PageKey = typeof PAGES[number]['key'];
 
@@ -316,6 +318,7 @@ function App() {
         {page === 'storecards' && <StoreCardsTable />}
         {page === 'airlinecards' && <AirlineCardsTable />}
         {page === 'hotelcards' && <HotelCardsTable />}
+        {page === 'whatmakesgood' && <WhatMakesCardGood />}
       </main>
     </div>
   )
