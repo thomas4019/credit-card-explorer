@@ -1,6 +1,4 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
   padding: 2rem;
   text-align: center;
 }
@@ -39,4 +37,130 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.spend-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.spend-table tbody tr:last-child th,
+.spend-table tbody tr:last-child td {
+  padding-bottom: 8px;
+}
+.spend-table tfoot tr th,
+.spend-table tfoot tr td {
+  border-top: 2px solid #CCC;
+}
+
+.card-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  padding: 0.75em 1.5em;
+  font-size: 1.05em;
+  box-shadow: 0 2px 8px rgba(100,108,255,0.04);
+  cursor: pointer;
+  transition: border 0.2s, box-shadow 0.2s, background 0.2s;
+  min-width: 220px;
+  user-select: none;
+}
+.card-checkbox-label.selected {
+  border-color: #646cff;
+  background: #f5f7ff;
+  box-shadow: 0 2px 12px rgba(100,108,255,0.10);
+}
+.card-checkbox-label input[type="checkbox"] {
+  accent-color: #646cff;
+  width: 1.2em;
+  height: 1.2em;
+  margin: 0;
+}
+.card-checkbox-label .card-name {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.card-toggle-group {
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.card-toggle-btn {
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  color: #222;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s, color 0.2s;
+}
+
+.card-toggle-btn.selected,
+.card-toggle-btn:focus {
+  background: #646cff;
+  color: #fff;
+  border-color: #646cff;
+  outline: none;
+}
+
+.card-toggle-btn:hover:not(.selected) {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+}
+
+.page-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: #f5f7ff;
+  padding: 2rem 1rem;
+  min-width: 200px;
+  border-right: 1.5px solid #e0e7ff;
+  box-shadow: 2px 0 8px rgba(100,108,255,0.04);
+  gap: 1rem;
+}
+
+.page-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.75em 1.25em;
+  font-size: 1.1em;
+  text-align: left;
+  border-radius: 8px;
+  color: #213547;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.page-btn.selected, .page-btn:focus {
+  background: #646cff;
+  color: #fff;
+  outline: none;
+}
+
+.page-btn:hover:not(.selected) {
+  background: #e0e7ff;
+  color: #213547;
+}
+
+@media (max-width: 700px) {
+  .page-selector {
+    flex-direction: row;
+    min-width: unset;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1.5px solid #e0e7ff;
+    box-shadow: 0 2px 8px rgba(100,108,255,0.04);
+    padding: 1rem 0.5rem;
+    gap: 0.5rem;
+  }
+  .page-btn {
+    font-size: 1em;
+    padding: 0.5em 0.75em;
+    width: auto;
+  }
 }
