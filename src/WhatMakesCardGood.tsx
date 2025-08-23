@@ -4,129 +4,21 @@ const WhatMakesCardGood: React.FC = () => (
   <section style={{ padding: '2rem', width: '100%', maxWidth: '900px', margin: '0 auto' }}>
     <h2>What Makes a Credit Card Good?</h2>
     <p style={{ fontSize: '1.1em', color: '#555', marginBottom: '2rem' }}>
-      When evaluating credit cards, there are four key factors to consider. Understanding these factors helps you choose the right card for your spending habits and financial goals.
+      When evaluating credit cards, there are some key factors to consider.
     </p>
-
-    <div style={{ display: 'grid', gap: '2rem', marginTop: '2rem' }}>
-      {/* Factor 1: Reward Rate */}
-      <div style={{ 
-        background: '#f8f9ff', 
-        padding: '1.5rem', 
-        borderRadius: '12px', 
-        border: '2px solid #e3f2fd',
-        boxShadow: '0 2px 8px rgba(100,108,255,0.1)'
-      }}>
-        <h3 style={{ color: '#1976d2', marginTop: 0, marginBottom: '1rem' }}>
-          🎯 1. Reward Rate (Points per $ × Point Value)
-        </h3>
-        <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
-          This is the foundation of card value. Calculate it by multiplying:
-        </p>
-        <ul style={{ marginLeft: '1.5rem', lineHeight: '1.6' }}>
-          <li><strong>Points per dollar spent</strong> - How many points you earn on purchases</li>
-          <li><strong>Point value</strong> - How much each point is worth when redeemed</li>
-        </ul>
-        <div style={{ 
-          background: '#fff', 
-          padding: '1rem', 
-          borderRadius: '8px', 
-          marginTop: '1rem',
-          border: '1px solid #e0e0e0'
-        }}>
-          <strong>Example:</strong> A card earning 3x points on dining with points worth 1.5¢ each = 4.5% effective return on dining purchases.
-        </div>
-      </div>
-
-      {/* Factor 2: Other Benefits */}
-      <div style={{ 
-        background: '#fff8f8', 
-        padding: '1.5rem', 
-        borderRadius: '12px', 
-        border: '2px solid #ffebee',
-        boxShadow: '0 2px 8px rgba(244,67,54,0.1)'
-      }}>
-        <h3 style={{ color: '#d32f2f', marginTop: 0, marginBottom: '1rem' }}>
-          🎁 2. Other Benefits
-        </h3>
-        <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
-          Beyond earning points, premium cards offer valuable perks that can offset annual fees:
-        </p>
-        <ul style={{ marginLeft: '1.5rem', lineHeight: '1.6' }}>
-          <li><strong>Travel benefits:</strong> Free checked bags, priority boarding, lounge access</li>
-          <li><strong>Hotel perks:</strong> Free night certificates, elite status, room upgrades</li>
-          <li><strong>Insurance:</strong> Travel insurance, rental car coverage, purchase protection</li>
-          <li><strong>Credits:</strong> Airline fee credits, hotel credits, dining credits</li>
-        </ul>
-        <div style={{ 
-          background: '#fff', 
-          padding: '1rem', 
-          borderRadius: '8px', 
-          marginTop: '1rem',
-          border: '1px solid #e0e0e0'
-        }}>
-          <strong>Example:</strong> $200 airline fee credit + $200 hotel credit = $400 in annual value.
-        </div>
-      </div>
-
-      {/* Factor 3: Signup Bonus */}
-      <div style={{ 
-        background: '#f0f8f0', 
-        padding: '1.5rem', 
-        borderRadius: '12px', 
-        border: '2px solid #c8e6c9',
-        boxShadow: '0 2px 8px rgba(76,175,80,0.1)'
-      }}>
-        <h3 style={{ color: '#2e7d32', marginTop: 0, marginBottom: '1rem' }}>
-          🚀 3. Signup Bonus
-        </h3>
-        <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
-          The initial bonus can provide significant upfront value, but consider the spending requirement:
-        </p>
-        <ul style={{ marginLeft: '1.5rem', lineHeight: '1.6' }}>
-          <li><strong>Bonus amount</strong> - Points or cash back offered</li>
-          <li><strong>Spending requirement</strong> - How much you need to spend in the first few months</li>
-          <li><strong>Time limit</strong> - Usually 3 months to meet the requirement</li>
-        </ul>
-        <div style={{ 
-          background: '#fff', 
-          padding: '1rem', 
-          borderRadius: '8px', 
-          marginTop: '1rem',
-          border: '1px solid #e0e0e0'
-        }}>
-          <strong>Example:</strong> 100,000 points for spending $4,000 in 3 months = 25x return on that spending.
-        </div>
-      </div>
-
-      {/* Factor 4: Annual Fee */}
-      <div style={{ 
-        background: '#fff3e0', 
-        padding: '1.5rem', 
-        borderRadius: '12px', 
-        border: '2px solid #ffcc02',
-        boxShadow: '0 2px 8px rgba(255,152,0,0.1)'
-      }}>
-        <h3 style={{ color: '#f57c00', marginTop: 0, marginBottom: '1rem' }}>
-          💰 4. Annual Fee
-        </h3>
-        <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
-          The cost of card ownership. Higher fees often mean better rewards and benefits:
-        </p>
-        <ul style={{ marginLeft: '1.5rem', lineHeight: '1.6' }}>
-          <li><strong>No-fee cards:</strong> Good for beginners or light spenders</li>
-          <li><strong>Low-fee cards ($95):</strong> Balance of cost and value</li>
-          <li><strong>Premium cards ($250+):</strong> High rewards and extensive benefits</li>
-        </ul>
-        <div style={{ 
-          background: '#fff', 
-          padding: '1rem', 
-          borderRadius: '8px', 
-          marginTop: '1rem',
-          border: '1px solid #e0e0e0'
-        }}>
-          <strong>Example:</strong> $395 annual fee with $800+ in annual benefits = net positive value.
-        </div>
-      </div>
+    <div style={{textAlign: 'left'}}>
+      <p>
+        <b>Return on spending:</b> e.g. 2% cashback or 3x points on dining, 1x on everything else
+      </p>
+      <p>
+        <b>Other Benefits:</b> Like free hotel nights, airport lounge access, free checked bags, elite status, Doordash credits, rental car coverage, purchase protection, etc.
+      </p>
+      <p>
+        <b>Signup Bonus:</b> Vary from $100 to $1500 in value.
+      </p>
+      <p>
+        <b>Annual Fee</b> Unless you plan to cancel the card after 1 year, consider if the benefits above really justify this cost.
+      </p>
     </div>
 
     {/* Summary Section */}
