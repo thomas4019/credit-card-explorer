@@ -269,7 +269,14 @@ const Maximizer: React.FC = () => {
           <span className="rate-badge">
             {showEffectiveRates && row.bestCard && typeof row.rate === 'number' ? (
               <>
-                {(row.rate * getEffectivePointValue(row.bestCard as CardKey, selectedCards, pointValues)).toFixed(1)}%
+                {(() => {
+                  const rate = row.rate
+                  const pointValue = getEffectivePointValue(row.bestCard as CardKey, selectedCards, pointValues)
+                  const effectiveRate = (rate * pointValue) / 100
+                  console.log(`Rate calc for ${row.key}: ${rate}x × ${pointValue}¢ = ${effectiveRate} = ${(effectiveRate * 100).toFixed(1)}%`)
+                  // Show no decimal places for whole numbers, 1 decimal place otherwise
+                  return `${(effectiveRate * 100) % 1 === 0 ? (effectiveRate * 100).toFixed(0) : (effectiveRate * 100).toFixed(1)}%`
+                })()}
               </>
             ) : (
               `${row.rate}x`
