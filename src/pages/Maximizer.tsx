@@ -563,6 +563,89 @@ const Maximizer: React.FC = () => {
           </div>
         </div>
       </div>
+
+            <div className="spending-summary-section">
+        <div className="spending-summary-card">
+          <div className="spending-summary-header">
+            <h3>💳 Quick Reference Card</h3>
+            <p className="spending-summary-subtitle">
+              Which card to use for each category
+            </p>
+          </div>
+          
+          <div className="spending-summary-content">
+            <div className="spending-summary-table">
+              {(() => {
+                // Group categories by card
+                const cardGroups = new Map<CardKey | 'none', Array<{key: SpendCategory, label: string, icon: string, rate: number}>>()
+                
+                spendRows.forEach((row) => {
+                  const cardKey = row.bestCard || 'none'
+                  if (!cardGroups.has(cardKey)) {
+                    cardGroups.set(cardKey, [])
+                  }
+                  cardGroups.get(cardKey)!.push({
+                    key: row.key,
+                    label: row.label,
+                    icon: (() => {
+                      switch(row.key) {
+                        case 'dining': return '🍽️'
+                        case 'flights': return '✈️'
+                        case 'hotels': return '🏨'
+                        case 'otherTravel': return '🧳'
+                        case 'groceries': return '🛒'
+                        case 'gas': return '⛽'
+                        case 'other': return '💳'
+                        default: return '💳'
+                      }
+                    })(),
+                    rate: row.rate
+                  })
+                })
+                
+                return Array.from(cardGroups.entries()).map(([cardKey, categories]) => (
+                  <div key={cardKey} className="card-group">
+                    <div className="card-group-header">
+                      <div className="card-name">
+                        {cardKey === 'none' ? 'No card selected' : cardOptions.find((c) => c.key === cardKey)?.label}
+                      </div>
+                      {cardKey !== 'none' && categories.length > 0 && (
+                        <div className="card-rate">
+                          {showEffectiveRates ? (
+                            `${(() => {
+                              const rate = categories[0].rate
+                              const pointValue = getEffectivePointValue(cardKey as CardKey, selectedCards, pointValues)
+                              const effectiveRate = (rate * pointValue) / 100
+                              return `${(effectiveRate * 100) % 1 === 0 ? (effectiveRate * 100).toFixed(0) : (effectiveRate * 100).toFixed(1)}%`
+                            })()} cashback`
+                          ) : (
+                            `${categories[0].rate}x points`
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="card-categories">
+                      {categories.map((category) => (
+                        <div key={category.key} className="category-item">
+                          <span className="category-icon">{category.icon}</span>
+                          <span className="category-label">{category.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              })()}
+            </div>
+            
+            <div className="print-instructions">
+              <div className="print-icon">🖨️</div>
+              <div className="print-text">
+                Print or screenshot for your wallet
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
