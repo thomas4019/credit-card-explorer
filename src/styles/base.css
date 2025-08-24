@@ -1,6 +1,9 @@
 #root {
   padding: 0;
   text-align: left;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .logo {
