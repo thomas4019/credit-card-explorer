@@ -40,7 +40,7 @@ function App() {
       <header className="top-menu-bar">
         <div className="menu-bar-content">
           <div className="menu-bar-left">
-            <h1 className="app-title">Credit Cards Points Explorer</h1>
+            <h1 className="app-title">Credit Cards Points Tools</h1>
           </div>
           <div className="menu-bar-right">
             <button 

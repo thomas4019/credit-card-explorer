@@ -124,10 +124,18 @@
   .welcome-card {
     padding: 3%;
   }
+  
+  .welcome-section .spend-input {
+    max-width: 100px;
+  }
 }
 
 @media (max-width: 480px) {
   .welcome-card {
     padding: 4%;
+  }
+  
+  .welcome-section .spend-input {
+    max-width: 80px;
   }
 }

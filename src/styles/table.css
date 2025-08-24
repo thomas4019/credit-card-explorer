@@ -177,6 +177,45 @@
   pointer-events: none;
 }
 
+/* Responsive design for spend inputs */
+@media (max-width: 768px) {
+  .spend-input {
+    padding: 0.4rem 0.4rem 0.4rem 1.2rem;
+    font-size: 0.85rem;
+  }
+  
+  .spend-input-cell {
+    width: 70px;
+  }
+  
+  .spend-input-cell .spend-input {
+    max-width: 50px;
+  }
+  
+  .currency-symbol {
+    left: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .spend-input {
+    padding: 0.3rem 0.3rem 0.3rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .spend-input-cell {
+    width: 60px;
+  }
+  
+  .spend-input-cell .spend-input {
+    max-width: 45px;
+  }
+  
+  .currency-symbol {
+    left: 5px;
+  }
+}
+
 .spend-input {
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -185,6 +224,37 @@
   width: 100%;
   background: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Responsive design for spend inputs */
+@media (max-width: 768px) {
+  .spend-input {
+    padding: 0.4rem 0.4rem 0.4rem 1.2rem;
+    font-size: 0.85rem;
+  }
+  
+  .spend-input-cell {
+    width: 70px;
+  }
+  
+  .spend-input-cell .spend-input {
+    max-width: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .spend-input {
+    padding: 0.3rem 0.3rem 0.3rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .spend-input-cell {
+    width: 60px;
+  }
+  
+  .spend-input-cell .spend-input {
+    max-width: 45px;
+  }
 }
 
 .spend-input:focus {
