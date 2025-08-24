@@ -421,6 +421,10 @@
   width: 80px;
 }
 
+.spend-input-cell .spend-input {
+  max-width: 60px;
+}
+
 .input-wrapper {
   position: relative;
   display: inline-block;
@@ -1439,4 +1443,8 @@
   color: #444;
   margin-top: 0.15em;
   margin-left: 1.2em;
+}
+
+.welcome-section .spend-input {
+  max-width: 120px;
 }
