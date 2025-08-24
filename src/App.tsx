@@ -12,9 +12,9 @@ import Maximizer from './pages/Maximizer';
 const PAGES = [
   { key: 'maximizer', label: 'Maximizer' },
   { key: 'whatmakesgood', label: 'What Makes a Card Good' },
-  { key: 'chase', label: 'Chase Points Value' },
-  { key: 'amex', label: 'Amex Points Value' },
-  { key: 'capitalone', label: 'Capital One Points Value' },
+  { key: 'chase', label: 'Chase Points Worth' },
+  { key: 'amex', label: 'Amex Points Worth' },
+  { key: 'capitalone', label: 'Capital One Points Worth' },
   { key: 'storecards', label: 'Store Credit Cards' },
   { key: 'airlinecards', label: 'Airline Credit Cards' },
   { key: 'hotelcards', label: 'Hotel Credit Cards' },

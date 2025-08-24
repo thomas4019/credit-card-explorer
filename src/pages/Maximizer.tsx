@@ -22,10 +22,10 @@ const Maximizer: React.FC = () => {
     gas: 0,
     other: 0,
   })
-  const [selectedCards, setSelectedCards] = useState<CardKey[]>(['chase'])
+  const [selectedCards, setSelectedCards] = useState<CardKey[]>([])
   const [assumptionsCollapsed, setAssumptionsCollapsed] = useState(true)
   const [pointValues, setPointValues] = useState<Record<CardKey, number>>(pointValue)
-  const [showEffectiveRates, setShowEffectiveRates] = useState(false)
+  const [showEffectiveRates, setShowEffectiveRates] = useState(true)
   
   // Local state for input values to ensure proper control
   const [inputValues, setInputValues] = useState<Record<SpendCategory, string>>({
@@ -38,6 +38,32 @@ const Maximizer: React.FC = () => {
     other: '',
   })
 
+  // Check if user has filled out all spending categories
+  const hasFilledAllCategories = Object.values(spend).every(amount => amount > 0)
+
+  const [readyToShowResults, setReadyToShowResults] = useState(false)
+  const debounceRef = React.useRef<number | null>(null)
+
+  // Debounce logic: wait 1s after all fields are filled before showing results
+  React.useEffect(() => {
+    if (hasFilledAllCategories) {
+      debounceRef.current = window.setTimeout(() => {
+        setReadyToShowResults(true)
+      }, 1000)
+    } else {
+      setReadyToShowResults(false)
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+        debounceRef.current = null
+      }
+    }
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+        debounceRef.current = null
+      }
+    }
+  }, [hasFilledAllCategories, spend])
 
 
   const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -112,34 +138,45 @@ const Maximizer: React.FC = () => {
     return calculateCardImpactUtil(cardKey, spend, selectedCards, pointValues)
   }
 
-  const cardImpactAnalysis = cardOptions.map((card) => ({
+  // Build card impact analysis
+  const cardImpactAnalysisRaw = cardOptions.map((card) => ({
     ...card,
     impact: calculateCardImpact(card.key),
     isSelected: selectedCards.includes(card.key)
   }))
 
-  // Check if user has filled out all spending categories
-  const hasFilledAllCategories = Object.values(spend).every(amount => amount > 0)
+  // Selected cards in the order they were added
+  const selectedCardAnalysis = selectedCards
+    .map(key => cardImpactAnalysisRaw.find(card => card.key === key))
+    .filter(Boolean) as typeof cardImpactAnalysisRaw
+
+  // Unselected cards sorted by impact descending
+  const unselectedCardAnalysis = cardImpactAnalysisRaw
+    .filter(card => !selectedCards.includes(card.key))
+    .sort((a, b) => b.impact - a.impact)
+
+  const cardImpactAnalysis = [...selectedCardAnalysis, ...unselectedCardAnalysis]
 
   // Welcome screen when not all categories are filled
-  if (!hasFilledAllCategories) {
+  if (!readyToShowResults) {
+    // Calculate total spending for display
+    const totalSpending = Object.values(spend).reduce((sum, amount) => sum + amount, 0)
+    
     return (
       <div className="maximizer-container">
         <div className="welcome-section">
           <div className="welcome-card">
             <div className="welcome-icon">💳</div>
-            <h1 className="welcome-title">Welcome to the Credit Card Rewards Maximizer!</h1>
+            <h1 className="welcome-title">Credit Card Rewards Maximizer!</h1>
             <p className="welcome-description">
-              To get started, please enter your approximate monthly spending in each category below. 
-              This will help us calculate which credit cards will give you the most rewards.
+              Enter your approximate monthly spending in each category below—rough estimates are fine—to see which credit cards will give you the most rewards.
             </p>
             
             <div className="spend-input-section">
               <div className="input-instructions">
                 <div className="instruction-icon">💡</div>
                 <div className="instruction-text">
-                  <strong>Enter your monthly spending</strong> for each category below. 
-                  Don't worry about being exact - rough estimates work great!
+                  <strong>Enter your approximate monthly spending</strong> in each category below to see which credit cards will give you the most rewards.
                 </div>
               </div>
 
@@ -150,7 +187,6 @@ const Maximizer: React.FC = () => {
                       <th className="header-category">Category</th>
                       <th className="header-spend">
                         Monthly Spend
-                        <span className="header-note">(enter amount)</span>
                       </th>
                     </tr>
                   </thead>
@@ -180,6 +216,17 @@ const Maximizer: React.FC = () => {
                         </td>
                       </tr>
                     ))}
+                    <tr className="spend-row total-row">
+                      <th scope="row" className="category-label total-label">
+                        <strong>Total Monthly Spending</strong>
+                      </th>
+                      <td className="spend-input-cell total-cell">
+                        <div className="total-amount">
+                          <span className="currency-symbol">$</span>
+                          <span className="total-value">{totalSpending.toLocaleString()}</span>
+                        </div>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
