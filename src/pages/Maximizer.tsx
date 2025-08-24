@@ -568,73 +568,6 @@ const Maximizer: React.FC = () => {
         </div>
       </div>
 
-      <div className="assumptions-section">
-        <div className="assumptions-header" onClick={() => setAssumptionsCollapsed(!assumptionsCollapsed)}>
-          <h3>Assumptions & Point Values</h3>
-          <span className={`collapse-icon ${assumptionsCollapsed ? 'collapsed' : 'expanded'}`}>
-            {assumptionsCollapsed ? '▼' : '▲'}
-          </span>
-        </div>
-        {!assumptionsCollapsed && (
-          <div className="assumptions-content">
-            <p className="assumptions-description">
-              Adjust the point values for each credit card type. These values represent how much each point is worth in cents. 
-              Chase Freedom, Sapphire Preferred, and Sapphire Reserve points are transferrable and will use the highest value among selected Chase cards.
-            </p>
-            <div className="point-values-grid">
-              {cardOptions.map((card) => {
-                const isChaseCard = ['chase', 'sapphire', 'sapphirereserve'].includes(card.key)
-                const effectiveValue = getEffectivePointValue(card.key, selectedCards, pointValues)
-                const showEffectiveValue = isChaseCard && selectedCards.some(selectedCard => 
-                  ['chase', 'sapphire', 'sapphirereserve'].includes(selectedCard)
-                )
-                return (
-                  <div key={card.key} className="point-value-item">
-                    <label className="point-value-label">
-                      {card.label}
-                    </label>
-                    <div className="point-value-input-row">
-                      <div className="point-value-input-wrapper">
-                        <span className="point-value-symbol">$</span>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          className="point-value-input"
-                          value={pointValues[card.key]}
-                          onChange={(e) => {
-                            const newValue = parseFloat(e.target.value) || 0
-                            setPointValues(prev => ({
-                              ...prev,
-                              [card.key]: newValue
-                            }))
-                          }}
-                        />
-                      </div>
-                      <span className="point-value-note">cents per point</span>
-                    </div>
-                    {showEffectiveValue && effectiveValue > pointValues[card.key] && (
-                      <div className="effective-value-note">
-                        Effective value: {effectiveValue} cents (highest among Chase cards)
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            <div className="assumptions-footer">
-              <button 
-                className="reset-button"
-                onClick={() => setPointValues(pointValue)}
-              >
-                Reset to Defaults
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
       <div className="summary-section">
         <RewardsSummary
           totalMonthlySpend={totalMonthlySpend}
@@ -768,6 +701,72 @@ const Maximizer: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+      <div className="assumptions-section">
+        <div className="assumptions-header" onClick={() => setAssumptionsCollapsed(!assumptionsCollapsed)}>
+          <h3>Assumptions & Point Values</h3>
+          <span className={`collapse-icon ${assumptionsCollapsed ? 'collapsed' : 'expanded'}`}>
+            {assumptionsCollapsed ? '▼' : '▲'}
+          </span>
+        </div>
+        {!assumptionsCollapsed && (
+          <div className="assumptions-content">
+            <p className="assumptions-description">
+              Adjust the point values for each credit card type. These values represent how much each point is worth in cents. 
+              Chase Freedom, Sapphire Preferred, and Sapphire Reserve points are transferrable and will use the highest value among selected Chase cards.
+            </p>
+            <div className="point-values-grid">
+              {cardOptions.map((card) => {
+                const isChaseCard = ['chase', 'sapphire', 'sapphirereserve'].includes(card.key)
+                const effectiveValue = getEffectivePointValue(card.key, selectedCards, pointValues)
+                const showEffectiveValue = isChaseCard && selectedCards.some(selectedCard => 
+                  ['chase', 'sapphire', 'sapphirereserve'].includes(selectedCard)
+                )
+                return (
+                  <div key={card.key} className="point-value-item">
+                    <label className="point-value-label">
+                      {card.label}
+                    </label>
+                    <div className="point-value-input-row">
+                      <div className="point-value-input-wrapper">
+                        <span className="point-value-symbol">$</span>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          className="point-value-input"
+                          value={pointValues[card.key]}
+                          onChange={(e) => {
+                            const newValue = parseFloat(e.target.value) || 0
+                            setPointValues(prev => ({
+                              ...prev,
+                              [card.key]: newValue
+                            }))
+                          }}
+                        />
+                      </div>
+                      <span className="point-value-note">cents per point</span>
+                    </div>
+                    {showEffectiveValue && effectiveValue > pointValues[card.key] && (
+                      <div className="effective-value-note">
+                        Effective value: {effectiveValue} cents (highest among Chase cards)
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="assumptions-footer">
+              <button 
+                className="reset-button"
+                onClick={() => setPointValues(pointValue)}
+              >
+                Reset to Defaults
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
