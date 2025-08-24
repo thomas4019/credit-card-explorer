@@ -117,7 +117,7 @@ export const annualFees: Record<CardKey, number> = {
   chase: 0,
   amex: 320,
   sapphire: 99,
-  sapphirereserve: 759,
+  sapphirereserve: 795,
   citi: 0,
   citipremier: 95,
   savor: 0,
@@ -135,6 +135,18 @@ export const otherBenefits: Record<CardKey, number> = {
   savor: 0,
   venturex: 400,
   amexbluecash: 0,
+}
+
+export const otherBenefitsSummary: Record<CardKey, string> = {
+  chase: '',
+  amex: '$10 Uber credit/mo, $10 dining credit/mo, $50 Resy credit/6mo',
+  sapphire: '',
+  sapphirereserve: '$500 hotel, $300 dining, $300 entertainment, free Apple+, $120 Peloton, $120 Lyft, $300 DoorDash, IHG Platinum, lounge access',
+  citi: '',
+  citipremier: '$100 hotel credit/yr',
+  savor: '',
+  venturex: '$300 travel credit/yr, 10,000 anniversary miles',
+  amexbluecash: '',
 }
 
 export const pointValue: Record<CardKey, number> = {

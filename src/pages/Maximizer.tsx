@@ -9,6 +9,7 @@ import {
   pointValue,
   spendCategories,
   defaultSpend,
+  otherBenefitsSummary,
 } from '../utils/creditCardData'
 import { calculateCardImpact as calculateCardImpactUtil, calculateSpendRows, getEffectivePointValue } from '../utils/cardImpactCalculator'
 
@@ -118,6 +119,9 @@ const Maximizer: React.FC = () => {
   }
 
   // Add other benefits row (sum for all selected cards)
+  const selectedBenefits = selectedCards
+    .map(card => otherBenefitsSummary[card])
+    .filter(Boolean)
   const otherBenefitsRow = {
     key: 'other-benefits',
     label: 'Other Benefits',
@@ -126,6 +130,7 @@ const Maximizer: React.FC = () => {
     points: '',
     value: selectedCards.reduce((sum, card) => sum + otherBenefits[card], 0),
     bestCard: '',
+    benefitSummaries: selectedBenefits,
   }
 
   const allRows = [...spendRows, annualFeeRow, otherBenefitsRow]
@@ -287,71 +292,97 @@ const Maximizer: React.FC = () => {
     )
   }
 
-  const renderSpendRow = (row: typeof allRows[number]) => (
-    <tr key={row.key} className={`spend-row ${row.key === 'annual-fee' ? 'annual-fee-row' : row.key === 'other-benefits' ? 'benefits-row' : 'category-row'}`}>
-      <th scope="row" id={`cat-${row.key}`} className="category-label">
-        {row.label}
-      </th>
-      <td className="spend-input-cell">
-        {row.key !== 'annual-fee' && row.key !== 'other-benefits' ? (
-          <div className="input-wrapper">
-            <span className="currency-symbol">$</span>
-            <input
-              className="spend-input"
-              id={row.key}
-              name={row.key}
-              type="number"
-              min={0}
-              step={10}
-              inputMode="numeric"
-              value={inputValues[row.key as SpendCategory] || ''}
-              onChange={handleSpendChange(row.key as SpendCategory)}
-              aria-labelledby={`cat-${row.key}`}
-            />
-          </div>
-        ) : null}
-      </td>
-      <td className="rate-cell">
-        {row.rate !== '' ? (
-          <span className="rate-badge">
-            {showEffectiveRates && row.bestCard && typeof row.rate === 'number' ? (
-              <>
-                {(() => {
-                  const rate = row.rate
-                  const pointValue = getEffectivePointValue(row.bestCard as CardKey, selectedCards, pointValues)
-                  const effectiveRate = (rate * pointValue) / 100
-                  console.log(`Rate calc for ${row.key}: ${rate}x × ${pointValue}¢ = ${effectiveRate} = ${(effectiveRate * 100).toFixed(1)}%`)
-                  // Show no decimal places for whole numbers, 1 decimal place otherwise
-                  return `${(effectiveRate * 100) % 1 === 0 ? (effectiveRate * 100).toFixed(0) : (effectiveRate * 100).toFixed(1)}%`
-                })()}
-              </>
-            ) : (
-              `${row.rate}x`
+  const renderSpendRow = (row: typeof allRows[number]) => {
+    if (row.key === 'other-benefits' && Array.isArray(row.benefitSummaries)) {
+      return (
+        <tr key={row.key} className="spend-row benefits-row">
+          <th scope="row" id={`cat-${row.key}`} className="category-label">
+            {row.label}
+          </th>
+          <td className="spend-input-cell" colSpan={4}>
+            {row.benefitSummaries.length > 0 && (
+              <div className="benefit-summaries">
+                {row.benefitSummaries.map((summary: string, idx: number) => (
+                  <div key={idx} className="benefit-summary-item">{summary}</div>
+                ))}
+              </div>
             )}
-          </span>
-        ) : ''}
-      </td>
-      <td className="points-cell">
-        {row.points !== '' ? (
-          <span className="points-value">{row.points.toLocaleString()}</span>
-        ) : ''}
-      </td>
-      <td className="value-cell">
-        <span className={`value-amount ${row.value < 0 ? 'negative' : 'positive'}`}>
-          {formatCurrency(row.value)}
-        </span>
-      </td>
-      {row.bestCard !== undefined && (
-        <td className="best-card-cell">
-          {row.bestCard ? (
-            <span className="best-card-badge">
-              {cardOptions.find((c) => c.key === row.bestCard)?.label}
+          </td>
+          <td className="value-cell">
+            <span className={`value-amount ${row.value < 0 ? 'negative' : 'positive'}`}>
+              {formatCurrency(row.value)}
+            </span>
+          </td>
+          {row.bestCard !== undefined && <td className="best-card-cell" />}
+        </tr>
+      )
+    }
+    // Default rendering for other rows
+    return (
+      <tr key={row.key} className={`spend-row ${row.key === 'annual-fee' ? 'annual-fee-row' : row.key === 'other-benefits' ? 'benefits-row' : 'category-row'}`}>
+        <th scope="row" id={`cat-${row.key}`} className="category-label">
+          {row.label}
+        </th>
+        <td className="spend-input-cell">
+          {row.key !== 'annual-fee' && row.key !== 'other-benefits' ? (
+            <div className="input-wrapper">
+              <span className="currency-symbol">$</span>
+              <input
+                className="spend-input"
+                id={row.key}
+                name={row.key}
+                type="number"
+                min={0}
+                step={10}
+                inputMode="numeric"
+                value={inputValues[row.key as SpendCategory] || ''}
+                onChange={handleSpendChange(row.key as SpendCategory)}
+                aria-labelledby={`cat-${row.key}`}
+              />
+            </div>
+          ) : null}
+        </td>
+        <td className="rate-cell">
+          {row.rate !== '' ? (
+            <span className="rate-badge">
+              {showEffectiveRates && row.bestCard && typeof row.rate === 'number' ? (
+                <>
+                  {(() => {
+                    const rate = row.rate
+                    const pointValue = getEffectivePointValue(row.bestCard as CardKey, selectedCards, pointValues)
+                    const effectiveRate = (rate * pointValue) / 100
+                    // Show no decimal places for whole numbers, 1 decimal place otherwise
+                    return `${(effectiveRate * 100) % 1 === 0 ? (effectiveRate * 100).toFixed(0) : (effectiveRate * 100).toFixed(1)}%`
+                  })()}
+                </>
+              ) : (
+                `${row.rate}x`
+              )}
             </span>
           ) : ''}
         </td>
-      )}
-    </tr>
-  )
+        <td className="points-cell">
+          {row.points !== '' ? (
+            <span className="points-value">{row.points.toLocaleString()}</span>
+          ) : ''}
+        </td>
+        <td className="value-cell">
+          <span className={`value-amount ${row.value < 0 ? 'negative' : 'positive'}`}>
+            {formatCurrency(row.value)}
+          </span>
+        </td>
+        {row.bestCard !== undefined && (
+          <td className="best-card-cell">
+            {row.bestCard ? (
+              <span className="best-card-badge">
+                {cardOptions.find((c) => c.key === row.bestCard)?.label}
+              </span>
+            ) : ''}
+          </td>
+        )}
+      </tr>
+    )
+  }
 
   return (
     <div className="maximizer-container">
