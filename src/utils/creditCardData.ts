@@ -180,3 +180,42 @@ export const defaultSpend: Record<SpendCategory, number> = {
   groceries: 500,
   other: 1000,
 }
+
+export const signupLinksAndBonuses: Record<CardKey, { link: string; bonus: string }> = {
+  chase: {
+    link: 'https://www.referyourchasecard.com/18A/3XFBFF94HA',
+    bonus: 'Earn $200 after you spend $500 on purchases in the first 3 months.'
+  },
+  amex: {
+    link: 'https://americanexpress.com/en-us/referral/gold-card?ref=THOMAHu0nC&XLINK=MYCP',
+    bonus: 'Up to 100,000 Membership Rewards® Points after you spend $6,000 in the first 6 months.'
+  },
+  sapphire: {
+    link: 'https://www.referyourchasecard.com/19u/NSJ6A49T0P#preferred',
+    bonus: 'Earn 60,000 bonus points after you spend $5,000 in the first 3 months.'
+  },
+  sapphirereserve: {
+    link: 'https://www.referyourchasecard.com/19u/NSJ6A49T0P#reserve',
+    bonus: 'Earn 125,000 bonus points after you spend $6,000 in the first 3 months.'
+  },
+  citi: {
+    link: 'https://www.citi.com/credit-cards/citi-double-cash-credit-card',
+    bonus: 'Earn $200 cash back after you spend $1,500 in the first 6 months.'
+  },
+  citipremier: {
+    link: 'https://www.citi.com/credit-cards/citi-premier-credit-card',
+    bonus: 'Earn 60,000 bonus ThankYou® Points after you spend $4,000 in the first 3 months.'
+  },
+  savor: {
+    link: 'https://www.capitalone.com/credit-cards/savor/',
+    bonus: 'Earn a one-time $300 cash bonus after you spend $3,000 in the first 3 months.'
+  },
+  venturex: {
+    link: 'https://www.capitalone.com/credit-cards/venture-x/',
+    bonus: 'Earn 75,000 bonus miles after you spend $4,000 in the first 3 months.'
+  },
+  amexbluecash: {
+    link: 'https://www.americanexpress.com/us/credit-cards/card/blue-cash-preferred/',
+    bonus: 'Earn a $250 statement credit after you spend $3,000 in the first 6 months.'
+  },
+}

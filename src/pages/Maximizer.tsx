@@ -10,6 +10,7 @@ import {
   spendCategories,
   defaultSpend,
   otherBenefitsSummary,
+  signupLinksAndBonuses,
 } from '../utils/creditCardData'
 import { calculateCardImpact as calculateCardImpactUtil, calculateSpendRows, getEffectivePointValue } from '../utils/cardImpactCalculator'
 
@@ -544,6 +545,27 @@ const Maximizer: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Sign Up Links Section */}
+      {selectedCards.length > 0 && (
+        <div className="signup-links-section">
+          <h2 className="signup-links-title">Sign Up Links for Your Selected Cards</h2>
+          <ul className="signup-links-list">
+            {selectedCards.map((cardKey) => {
+              const card = cardOptions.find(c => c.key === cardKey)
+              const signup = signupLinksAndBonuses[cardKey]
+              if (!card || !signup) return null
+              return (
+                <li key={cardKey} className="signup-link-item">
+                  <strong>{card.label}:</strong> {' '}
+                  <a href={signup.link} target="_blank" rel="noopener noreferrer" className="signup-link">Apply here</a>
+                  <div className="signup-bonus-detail">{signup.bonus}</div>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       <div className="assumptions-section">
         <div className="assumptions-header" onClick={() => setAssumptionsCollapsed(!assumptionsCollapsed)}>
