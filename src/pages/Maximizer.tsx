@@ -85,6 +85,7 @@ const Maximizer: React.FC = () => {
     const [assumptionsCollapsed, setAssumptionsCollapsed] = useState(true)
     const [pointValues, setPointValues] = useState<Record<CardKey, number>>(pointValue)
     const [showEffectiveRates, setShowEffectiveRates] = useState(true)
+    const [mobileSpendingCollapsed, setMobileSpendingCollapsed] = useState(true)
 
     // Local state for input values to ensure proper control
     const [inputValues, setInputValues] = useState<Record<SpendCategory, string>>({
@@ -273,7 +274,7 @@ const Maximizer: React.FC = () => {
                                         </th>
                                         <td className="spend-input-cell total-cell">
                                             <div className="total-amount">
-                                                <span className="total-value">${totalSpending.toLocaleString()}</span>
+                                                <span className="total-value">${totalMonthlySpend.toLocaleString()}</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -530,7 +531,8 @@ const Maximizer: React.FC = () => {
                 </div>
 
                 <div className="table-container">
-                    <table className="spend-table">
+                    {/* Desktop: Single comprehensive table */}
+                    <table className="spend-table desktop-table">
                         <thead>
                         <tr>
                             <th className="header-category">Category</th>
@@ -571,6 +573,128 @@ const Maximizer: React.FC = () => {
                         </tr>
                         </tfoot>
                     </table>
+
+                                            {/* Mobile: Two separate tables */}
+                        <div className="mobile-tables">
+                            {/* Mobile Table 1: Spending Inputs - Collapsible */}
+                            <div className="mobile-table-container">
+                                <button 
+                                    className="mobile-table-toggle"
+                                    onClick={() => setMobileSpendingCollapsed(!mobileSpendingCollapsed)}
+                                    aria-expanded={!mobileSpendingCollapsed}
+                                    aria-controls="mobile-spending-table"
+                                >
+                                    <h4 className="mobile-table-title">Monthly Spending</h4>
+                                    <span className="toggle-icon">
+                                        {mobileSpendingCollapsed ? '▼' : '▲'}
+                                    </span>
+                                </button>
+                                <div 
+                                    id="mobile-spending-table"
+                                    className={`mobile-table-content ${mobileSpendingCollapsed ? 'collapsed' : ''}`}
+                                >
+                                    <table className="spend-table mobile-spend-table">
+                                        <thead>
+                                        <tr>
+                                            <th className="header-category">Category</th>
+                                            <th className="header-spend">Monthly Spend</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {spendCategories.map((category) => (
+                                            <tr key={category.key} className="spend-row">
+                                                <th scope="row" className="category-label">
+                                                    {category.label}
+                                                </th>
+                                                <td className="spend-input-cell">
+                                                    <div className="input-wrapper">
+                                                        <span className="currency-symbol">$</span>
+                                                        <input
+                                                            className="spend-input"
+                                                            id={`mobile-${category.key}`}
+                                                            name={category.key}
+                                                            type="number"
+                                                            min={0}
+                                                            step={10}
+                                                            inputMode="numeric"
+                                                            value={inputValues[category.key] || ''}
+                                                            onChange={handleSpendChange(category.key)}
+                                                            aria-labelledby={`cat-${category.key}`}
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        <tr className="spend-row total-row">
+                                            <th scope="row" className="category-label total-label">
+                                                <strong>Total</strong>
+                                            </th>
+                                            <td className="spend-input-cell total-cell">
+                                                <div className="total-amount">
+                                                    <span className="total-value">${totalMonthlySpend.toLocaleString()}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        {/* Mobile Table 2: Results */}
+                        <div className="mobile-table-container">
+                            <h4 className="mobile-table-title">Rewards Summary</h4>
+                            <table className="spend-table mobile-results-table">
+                                <thead>
+                                <tr>
+                                    <th className="header-category">Category</th>
+                                    <th className="header-rate">
+                                        {showEffectiveRates ? 'Cashback' : 'Rate'}
+                                    </th>
+                                    <th className="header-value">Annual Value</th>
+                                    <th className="header-card">Best Card</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {allRows.map((row) => (
+                                    <tr key={row.key} className="spend-row">
+                                        <th scope="row" className="category-label">
+                                            {row.label}
+                                        </th>
+                                        <td className="rate-cell">
+                                            <span className="rate-badge">
+                                                {showEffectiveRates && row.bestCard && typeof row.rate === 'number' ? (
+                                                    (() => {
+                                                        const rate = row.rate
+                                                        const pointValue = getEffectivePointValue(row.bestCard as CardKey, selectedCards, pointValues)
+                                                        const effectiveRate = (rate * pointValue) / 100
+                                                        return `${(effectiveRate * 100) % 1 === 0 ? (effectiveRate * 100).toFixed(0) : (effectiveRate * 100).toFixed(1)}%`
+                                                    })()
+                                                ) : (
+                                                    row.rate !== '' ? `${row.rate}x` : '-'
+                                                )}
+                                            </span>
+                                        </td>
+                                        <td className="value-cell">
+                                            <span className={`value-amount ${row.value < 0 ? 'negative' : 'positive'}`}>
+                                                {formatCurrency(row.value)}
+                                            </span>
+                                        </td>
+                                        <td className="best-card-cell">
+                                            {row.bestCard ? (
+                                                <span className="best-card-badge">
+                                                    {cardOptions.find(c => c.key === row.bestCard)?.label || row.bestCard}
+                                                </span>
+                                            ) : (
+                                                <span className="no-card">-</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 

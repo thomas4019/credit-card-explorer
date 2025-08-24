@@ -400,3 +400,122 @@
   font-weight: 400;
   margin-left: 0.5rem;
 }
+
+/* Mobile table layout */
+.mobile-tables {
+  display: none;
+}
+
+.mobile-table-container {
+  margin-bottom: 2rem;
+}
+
+.mobile-table-toggle {
+  background: none;
+  border: none;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.mobile-table-toggle:hover {
+  background: rgba(100, 108, 255, 0.05);
+}
+
+.mobile-table-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(100, 108, 255, 0.3);
+}
+
+.mobile-table-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+  text-align: left;
+}
+
+.toggle-icon {
+  font-size: 0.8rem;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.mobile-table-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.mobile-table-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.mobile-spend-table,
+.mobile-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(100, 108, 255, 0.07);
+}
+
+.mobile-results-table .rate-cell,
+.mobile-results-table .value-cell,
+.mobile-results-table .best-card-cell {
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+}
+
+.mobile-results-table .category-label {
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+/* Responsive table display */
+@media (max-width: 768px) {
+  .desktop-table {
+    display: none;
+  }
+  
+  .mobile-tables {
+    display: block;
+  }
+  
+  .mobile-table-container {
+    margin-bottom: 1.5rem;
+  }
+  
+  .mobile-table-title {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-table-container {
+    margin-bottom: 1rem;
+  }
+  
+  .mobile-table-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .mobile-results-table .rate-cell,
+  .mobile-results-table .value-cell,
+  .mobile-results-table .best-card-cell {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .mobile-results-table .category-label {
+    padding: 0.5rem 0.75rem;
+  }
+}
