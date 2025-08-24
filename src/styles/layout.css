@@ -22,7 +22,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 2% 4%;
   width: 100%;
   box-sizing: border-box;
 }
@@ -105,7 +105,7 @@ html, body {
   flex: 1;
   display: flex;
   align-items: flex-start;
-  padding: 2rem;
+  padding: 3% 4%;
   width: 100%;
   margin: 0;
   box-sizing: border-box;
@@ -229,7 +229,7 @@ html, body {
 /* Responsive design */
 @media (max-width: 768px) {
   .menu-bar-content {
-    padding: 1rem;
+    padding: 3% 4%;
   }
   
   .app-title {
@@ -237,11 +237,19 @@ html, body {
   }
   
   .main-content {
-    padding: 1rem;
+    padding: 4% 5%;
   }
 }
 
 @media (max-width: 480px) {
+  .menu-bar-content {
+    padding: 4% 5%;
+  }
+  
+  .main-content {
+    padding: 5% 6%;
+  }
+  
   .mobile-menu-panel {
     width: 260px;
   }
