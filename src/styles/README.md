@@ -14,7 +14,8 @@ Main entry point that imports all other CSS files in the correct order.
 
 ### `layout.css`
 - Page selector and navigation styles
-- Desktop and mobile navigation
+- Desktop navigation (sidebar)
+- Mobile navigation (hamburger menu with slide-out panel)
 - Responsive navigation breakpoints
 
 ### `maximizer.css`

@@ -22,43 +22,69 @@ const PAGES = [
 type PageKey = typeof PAGES[number]['key'];
 
 function App() {
-
   const [page, setPage] = useState<PageKey>('maximizer');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const selectPage = (pageKey: PageKey) => {
+    setPage(pageKey);
+    setMobileMenuOpen(false); // Close menu when page is selected
+  };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <nav className="page-selector">
-        {/* Desktop navigation */}
-        <div className="desktop-nav">
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Top menu bar */}
+      <header className="top-menu-bar">
+        <div className="menu-bar-content">
+          <div className="menu-bar-left">
+            <h1 className="app-title">Credit Cards Points Explorer</h1>
+          </div>
+          <div className="menu-bar-right">
+            <button 
+              className={`hamburger-button${mobileMenuOpen ? ' open' : ''}`}
+              onClick={toggleMobileMenu}
+              aria-label="Toggle navigation menu"
+            >
+              <div className="hamburger">
+                <span className="hamburger-line"></span>
+                <span className="hamburger-line"></span>
+                <span className="hamburger-line"></span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile menu overlay */}
+      <div 
+        className={`mobile-menu-overlay${mobileMenuOpen ? ' open' : ''}`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
+      {/* Right-side mobile menu panel */}
+      <div className={`mobile-menu-panel${mobileMenuOpen ? ' open' : ''}`}>
+        <div className="mobile-menu-header">
+          <h2 className="mobile-menu-title">Navigation</h2>
+        </div>
+        <div className="mobile-menu-items">
           {PAGES.map((p) => (
             <button
               key={p.key}
-              className={`page-btn${page === p.key ? ' selected' : ''}`}
-              onClick={() => setPage(p.key)}
-              tabIndex={0}
+              className={`mobile-menu-item${page === p.key ? ' selected' : ''}`}
+              onClick={() => selectPage(p.key)}
             >
+              <span className="mobile-menu-icon">📄</span>
               {p.label}
             </button>
           ))}
         </div>
-        
-        {/* Mobile navigation */}
-        <div className="mobile-nav">
-          <select
-            value={page}
-            onChange={(e) => setPage(e.target.value as PageKey)}
-            className="mobile-page-select"
-            aria-label="Select page"
-          >
-            {PAGES.map((p) => (
-              <option key={p.key} value={p.key}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </nav>
-      <main style={{ flex: 1, display: 'flex', alignItems: 'flex-start' }}>
+      </div>
+
+      {/* Main content */}
+      <main className="main-content">
         {page === 'maximizer' && <Maximizer />}
         {page === 'chase' && <ChasePointsValue />}
         {page === 'amex' && <AmexPointsValue />}
