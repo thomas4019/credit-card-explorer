@@ -3,7 +3,6 @@ import {
   type SpendCategory,
   type CardKey,
   cardOptions,
-  rewardRates,
   annualFees,
   otherBenefits,
   pointValue,

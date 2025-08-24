@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { calculateCardImpact, getEffectivePointValue, calculateSpendRows } from '../cardImpactCalculator'
 import { pointValue, defaultSpend } from '../creditCardData'
-import type { CardKey, SpendCategory } from '../creditCardData'
+import type { CardKey } from '../creditCardData'
 
 describe('getEffectivePointValue', () => {
   it('should return base point value for non-Chase cards', () => {
@@ -194,8 +194,8 @@ describe('Integration tests', () => {
     // Test the exact scenario: Amex Gold + Chase Freedom Unlimited, then adding Sapphire Preferred
     
     // First, calculate current value with Amex Gold + Chase Freedom
-    const currentSpendRows = calculateSpendRows(defaultSpend, ['amex', 'chase'], pointValue)
-    const currentTotalValue = currentSpendRows.reduce((sum, row) => sum + row.value, 0)
+    // const currentSpendRows = calculateSpendRows(defaultSpend, ['amex', 'chase'], pointValue)
+    // const currentTotalValue = currentSpendRows.reduce((sum, row) => sum + row.value, 0)
     
     // Then calculate impact of adding Sapphire Preferred
     const sapphireImpact = calculateCardImpact('sapphire', defaultSpend, ['amex', 'chase'], pointValue)
@@ -209,8 +209,8 @@ describe('Integration tests', () => {
     // Test that each additional Chase card improves the overall value
     
     // Start with just Chase Freedom
-    const freedomOnly = calculateSpendRows(defaultSpend, ['chase'], pointValue)
-    const freedomTotal = freedomOnly.reduce((sum, row) => sum + row.value, 0)
+    // const freedomOnly = calculateSpendRows(defaultSpend, ['chase'], pointValue)
+    // const freedomTotal = freedomOnly.reduce((sum, row) => sum + row.value, 0)
     
     // Add Sapphire Preferred
     const sapphireImpact = calculateCardImpact('sapphire', defaultSpend, ['chase'], pointValue)

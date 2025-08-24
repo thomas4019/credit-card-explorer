@@ -4,7 +4,6 @@ import {
   rewardRates,
   annualFees,
   otherBenefits,
-  pointValue,
   spendCategories,
 } from './creditCardData'
 

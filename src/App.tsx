@@ -28,16 +28,35 @@ function App() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <nav className="page-selector">
-        {PAGES.map((p) => (
-          <button
-            key={p.key}
-            className={`page-btn${page === p.key ? ' selected' : ''}`}
-            onClick={() => setPage(p.key)}
-            tabIndex={0}
+        {/* Desktop navigation */}
+        <div className="desktop-nav">
+          {PAGES.map((p) => (
+            <button
+              key={p.key}
+              className={`page-btn${page === p.key ? ' selected' : ''}`}
+              onClick={() => setPage(p.key)}
+              tabIndex={0}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        
+        {/* Mobile navigation */}
+        <div className="mobile-nav">
+          <select
+            value={page}
+            onChange={(e) => setPage(e.target.value as PageKey)}
+            className="mobile-page-select"
+            aria-label="Select page"
           >
-            {p.label}
-          </button>
-        ))}
+            {PAGES.map((p) => (
+              <option key={p.key} value={p.key}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </nav>
       <main style={{ flex: 1, display: 'flex', alignItems: 'flex-start' }}>
         {page === 'maximizer' && <Maximizer />}
