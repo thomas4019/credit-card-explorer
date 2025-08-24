@@ -14,6 +14,51 @@ import {
 } from '../utils/creditCardData'
 import { calculateCardImpact as calculateCardImpactUtil, calculateSpendRows, getEffectivePointValue } from '../utils/cardImpactCalculator'
 
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})
+const formatCurrency = (amount: number): string => currencyFormatter.format(amount)
+
+const RewardsSummary: React.FC<{
+  totalMonthlySpend: number;
+  totalPoints: number;
+  totalValue: number;
+  selectedCardsCount: number;
+  showHeading?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}> = ({ totalMonthlySpend, totalPoints, totalValue, selectedCardsCount, showHeading = false, className = '', children }) => (
+  <div className={`top-summary-card ${className}`}>
+    {showHeading && (
+      <div className="summary-header">
+        <h3>Your Rewards Summary</h3>
+      </div>
+    )}
+    <div className="top-summary-grid">
+      <div className="top-summary-item">
+        <div className="top-summary-label">Monthly Spending</div>
+        <div className="top-summary-value">{formatCurrency(totalMonthlySpend)}</div>
+      </div>
+      <div className="top-summary-item">
+        <div className="top-summary-label">Annual Points</div>
+        <div className="top-summary-value">{totalPoints.toLocaleString()}</div>
+      </div>
+      <div className="top-summary-item">
+        <div className="top-summary-label">Net Annual Value</div>
+        <div className={`top-summary-value ${totalValue >= 0 ? 'positive' : 'negative'}`}>{formatCurrency(totalValue)}</div>
+      </div>
+      <div className="top-summary-item">
+        <div className="top-summary-label">Cards Selected</div>
+        <div className="top-summary-value">{selectedCardsCount}</div>
+      </div>
+    </div>
+    {children}
+  </div>
+)
+
 const Maximizer: React.FC = () => {
   const [spend, setSpend] = useState<Record<SpendCategory, number>>({
     dining: 0,
@@ -67,14 +112,6 @@ const Maximizer: React.FC = () => {
     }
   }, [hasFilledAllCategories, spend])
 
-
-  const currencyFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })
-  const formatCurrency = (amount: number): string => currencyFormatter.format(amount)
 
   const parseToNumber = (value: string): number => {
     const parsed = parseFloat(value)
@@ -294,16 +331,17 @@ const Maximizer: React.FC = () => {
   }
 
   const renderSpendRow = (row: typeof allRows[number]) => {
-    if (row.key === 'other-benefits' && Array.isArray(row.benefitSummaries)) {
+    if (row.key === 'other-benefits' && Array.isArray((row as any).benefitSummaries)) {
+      const benefitSummaries = (row as any).benefitSummaries as string[]
       return (
         <tr key={row.key} className="spend-row benefits-row">
           <th scope="row" id={`cat-${row.key}`} className="category-label">
             {row.label}
           </th>
           <td className="spend-input-cell" colSpan={4}>
-            {row.benefitSummaries.length > 0 && (
+            {benefitSummaries.length > 0 && (
               <div className="benefit-summaries">
-                {row.benefitSummaries.map((summary: string, idx: number) => (
+                {benefitSummaries.map((summary: string, idx: number) => (
                   <div key={idx} className="benefit-summary-item">{summary}</div>
                 ))}
               </div>
@@ -395,28 +433,12 @@ const Maximizer: React.FC = () => {
       </div>
 
       <div className="top-summary-section">
-        <div className="top-summary-card">
-          <div className="top-summary-grid">
-            <div className="top-summary-item">
-              <div className="top-summary-label">Monthly Spending</div>
-              <div className="top-summary-value">{formatCurrency(totalMonthlySpend)}</div>
-            </div>
-            <div className="top-summary-item">
-              <div className="top-summary-label">Annual Points</div>
-              <div className="top-summary-value">{totalPoints.toLocaleString()}</div>
-            </div>
-            <div className="top-summary-item">
-              <div className="top-summary-label">Net Annual Value</div>
-              <div className={`top-summary-value ${totalValue >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(totalValue)}
-              </div>
-            </div>
-            <div className="top-summary-item">
-              <div className="top-summary-label">Cards Selected</div>
-              <div className="top-summary-value">{selectedCards.length}</div>
-            </div>
-          </div>
-        </div>
+        <RewardsSummary
+          totalMonthlySpend={totalMonthlySpend}
+          totalPoints={totalPoints}
+          totalValue={totalValue}
+          selectedCardsCount={selectedCards.length}
+        />
       </div>
 
       <div className="card-selection-section">
@@ -546,27 +568,6 @@ const Maximizer: React.FC = () => {
         </div>
       </div>
 
-      {/* Sign Up Links Section */}
-      {selectedCards.length > 0 && (
-        <div className="signup-links-section">
-          <h2 className="signup-links-title">Sign Up Links for Your Selected Cards</h2>
-          <ul className="signup-links-list">
-            {selectedCards.map((cardKey) => {
-              const card = cardOptions.find(c => c.key === cardKey)
-              const signup = signupLinksAndBonuses[cardKey]
-              if (!card || !signup) return null
-              return (
-                <li key={cardKey} className="signup-link-item">
-                  <strong>{card.label}:</strong> {' '}
-                  <a href={signup.link} target="_blank" rel="noopener noreferrer" className="signup-link">Apply here</a>
-                  <div className="signup-bonus-detail">{signup.bonus}</div>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      )}
-
       <div className="assumptions-section">
         <div className="assumptions-header" onClick={() => setAssumptionsCollapsed(!assumptionsCollapsed)}>
           <h3>Assumptions & Point Values</h3>
@@ -574,56 +575,54 @@ const Maximizer: React.FC = () => {
             {assumptionsCollapsed ? '▼' : '▲'}
           </span>
         </div>
-        
         {!assumptionsCollapsed && (
           <div className="assumptions-content">
             <p className="assumptions-description">
               Adjust the point values for each credit card type. These values represent how much each point is worth in cents. 
               Chase Freedom, Sapphire Preferred, and Sapphire Reserve points are transferrable and will use the highest value among selected Chase cards.
             </p>
-                            <div className="point-values-grid">
-                                    {cardOptions.map((card) => {
-                    const isChaseCard = ['chase', 'sapphire', 'sapphirereserve'].includes(card.key)
-                    const effectiveValue = getEffectivePointValue(card.key, selectedCards, pointValues)
-                    const showEffectiveValue = isChaseCard && selectedCards.some(selectedCard => 
-                      ['chase', 'sapphire', 'sapphirereserve'].includes(selectedCard)
-                    )
-                    
-                    return (
-                      <div key={card.key} className="point-value-item">
-                        <label className="point-value-label">
-                          {card.label}
-                        </label>
-                        <div className="point-value-input-row">
-                          <div className="point-value-input-wrapper">
-                            <span className="point-value-symbol">$</span>
-                            <input
-                              type="number"
-                              step="0.1"
-                              min="0"
-                              max="100"
-                              className="point-value-input"
-                              value={pointValues[card.key]}
-                              onChange={(e) => {
-                                const newValue = parseFloat(e.target.value) || 0
-                                setPointValues(prev => ({
-                                  ...prev,
-                                  [card.key]: newValue
-                                }))
-                              }}
-                            />
-                          </div>
-                          <span className="point-value-note">cents per point</span>
-                        </div>
-                        {showEffectiveValue && effectiveValue > pointValues[card.key] && (
-                          <div className="effective-value-note">
-                            Effective value: {effectiveValue} cents (highest among Chase cards)
-                          </div>
-                        )}
+            <div className="point-values-grid">
+              {cardOptions.map((card) => {
+                const isChaseCard = ['chase', 'sapphire', 'sapphirereserve'].includes(card.key)
+                const effectiveValue = getEffectivePointValue(card.key, selectedCards, pointValues)
+                const showEffectiveValue = isChaseCard && selectedCards.some(selectedCard => 
+                  ['chase', 'sapphire', 'sapphirereserve'].includes(selectedCard)
+                )
+                return (
+                  <div key={card.key} className="point-value-item">
+                    <label className="point-value-label">
+                      {card.label}
+                    </label>
+                    <div className="point-value-input-row">
+                      <div className="point-value-input-wrapper">
+                        <span className="point-value-symbol">$</span>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          className="point-value-input"
+                          value={pointValues[card.key]}
+                          onChange={(e) => {
+                            const newValue = parseFloat(e.target.value) || 0
+                            setPointValues(prev => ({
+                              ...prev,
+                              [card.key]: newValue
+                            }))
+                          }}
+                        />
                       </div>
-                    )
-                  })}
-                </div>
+                      <span className="point-value-note">cents per point</span>
+                    </div>
+                    {showEffectiveValue && effectiveValue > pointValues[card.key] && (
+                      <div className="effective-value-note">
+                        Effective value: {effectiveValue} cents (highest among Chase cards)
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
             <div className="assumptions-footer">
               <button 
                 className="reset-button"
@@ -637,34 +636,34 @@ const Maximizer: React.FC = () => {
       </div>
 
       <div className="summary-section">
-        <div className="summary-card">
-          <div className="summary-header">
-            <h3>Your Rewards Summary</h3>
-          </div>
-          <div className="summary-grid">
-            <div className="summary-item">
-              <div className="summary-label">Monthly Spending</div>
-              <div className="summary-value">{formatCurrency(totalMonthlySpend)}</div>
-            </div>
-            <div className="summary-item">
-              <div className="summary-label">Annual Points Earned</div>
-              <div className="summary-value">{totalPoints.toLocaleString()}</div>
-            </div>
-            <div className="summary-item">
-              <div className="summary-label">Net Annual Value</div>
-              <div className={`summary-value ${totalValue >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(totalValue)}
-              </div>
-            </div>
-            <div className="summary-item">
-              <div className="summary-label">Cards Selected</div>
-              <div className="summary-value">{selectedCards.length}</div>
-            </div>
-          </div>
-        </div>
+        <RewardsSummary
+          totalMonthlySpend={totalMonthlySpend}
+          totalPoints={totalPoints}
+          totalValue={totalValue}
+          selectedCardsCount={selectedCards.length}
+          showHeading={true}
+          className="summary-card"
+        >
+          {selectedCards.length > 0 && (
+            <ul className="signup-links-list">
+              {selectedCards.map((cardKey) => {
+                const card = cardOptions.find(c => c.key === cardKey)
+                const signup = signupLinksAndBonuses[cardKey]
+                if (!card || !signup) return null
+                return (
+                  <li key={cardKey} className="signup-link-item">
+                    <strong>{card.label}:</strong> {' '}
+                    <a href={signup.link} target="_blank" rel="noopener noreferrer" className="signup-link">Apply here</a>
+                    <div className="signup-bonus-detail">{signup.bonus}</div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </RewardsSummary>
       </div>
 
-            <div className="spending-summary-section">
+      <div className="spending-summary-section">
         <div className="spending-summary-card">
           <div className="spending-summary-header">
             <h3>💳 Quick Reference Card</h3>
