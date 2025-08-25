@@ -98,8 +98,8 @@ const Maximizer: React.FC = () => {
         other: '',
     })
 
-    // Check if user has filled out all spending categories
-    const hasFilledAllCategories = Object.values(spend).every(amount => amount > 0)
+    // Check if user has filled out all spending categories (including zeros)
+    const hasFilledAllCategories = Object.values(inputValues).every(value => value !== '')
 
     const [readyToShowResults, setReadyToShowResults] = useState(false)
     const debounceRef = React.useRef<number | null>(null)
