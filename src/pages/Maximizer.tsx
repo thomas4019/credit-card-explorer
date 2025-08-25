@@ -215,9 +215,6 @@ const Maximizer: React.FC = () => {
 
     // Welcome screen when not all categories are filled
     if (!readyToShowResults) {
-        // Calculate total spending for display
-        const totalSpending = Object.values(spend).reduce((sum, amount) => sum + amount, 0)
-
         return (
             <div className="maximizer-container">
                 <div className="welcome-section">
