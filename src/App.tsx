@@ -8,8 +8,10 @@ import AirlineCardsTable from './pages/AirlineCardsTable';
 import HotelCardsTable from './pages/HotelCardsTable';
 import WhatMakesCardGood from './pages/WhatMakesCardGood';
 import Maximizer from './pages/Maximizer';
+import CardPicker from './pages/CardPicker';
 
 const PAGES = [
+  { key: 'cardpicker', label: 'Card Picker' },
   { key: 'maximizer', label: 'Maximizer' },
   { key: 'chase', label: 'Chase Points Worth' },
   { key: 'amex', label: 'Amex Points Worth' },
@@ -84,6 +86,7 @@ function App() {
 
       {/* Main content */}
       <main className="main-content">
+        {page === 'cardpicker' && <CardPicker />}
         {page === 'maximizer' && <Maximizer />}
         {page === 'chase' && <ChasePointsValue />}
         {page === 'amex' && <AmexPointsValue />}
