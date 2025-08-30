@@ -24,7 +24,7 @@ const PAGES = [
 type PageKey = typeof PAGES[number]['key'];
 
 function App() {
-  const [page, setPage] = useState<PageKey>('maximizer');
+  const [page, setPage] = useState<PageKey>('cardpicker');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {

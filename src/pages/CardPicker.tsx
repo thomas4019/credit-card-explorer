@@ -223,6 +223,7 @@ const CardPicker: React.FC = () => {
       case 5:
         return state.pointsUsage.length > 0
       case 6:
+        // Only show this step if points transfers is selected
         return state.pointsUsage.includes('pointsTransfers') ? state.transferPartners.length > 0 : true
       default:
         return false
@@ -230,9 +231,9 @@ const CardPicker: React.FC = () => {
   }
 
   const nextStep = () => {
-    if (canProceed() && currentStep < 7) {
-      if (currentStep === 6) {
-        // Initialize spending sliders when moving to step 7
+    if (canProceed() && currentStep < getMaxStep()) {
+      // Initialize spending sliders when moving to the sliders step
+      if (currentStep === 6 || (currentStep === 5 && !state.pointsUsage.includes('pointsTransfers'))) {
         const initialSpending = calculateInitialSpending()
         setState(prev => ({
           ...prev,
@@ -248,6 +249,33 @@ const CardPicker: React.FC = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
+  }
+
+  // Calculate the maximum step based on user selections
+  const getMaxStep = () => {
+    if (state.pointsUsage.includes('pointsTransfers')) {
+      return 7 // Show all steps including transfer partners
+    } else {
+      return 6 // Skip transfer partners step
+    }
+  }
+
+  // Get the current step number for display (accounting for skipped steps)
+  const getCurrentStepNumber = () => {
+    if (currentStep <= 5) {
+      return currentStep
+    } else if (currentStep === 6 && !state.pointsUsage.includes('pointsTransfers')) {
+      return 6 // This is actually the sliders step
+    } else if (currentStep === 6 && state.pointsUsage.includes('pointsTransfers')) {
+      return 6 // Transfer partners step
+    } else {
+      return 7 // Sliders step
+    }
+  }
+
+  // Get the total number of steps for display
+  const getTotalSteps = () => {
+    return state.pointsUsage.includes('pointsTransfers') ? 7 : 6
   }
 
   const getSliderTicks = () => {
@@ -594,7 +622,21 @@ const CardPicker: React.FC = () => {
       case 5:
         return renderStep5()
       case 6:
-        return renderStep6()
+        if (state.pointsUsage.includes('pointsTransfers')) {
+          return renderStep6()
+        } else {
+          // Skip to sliders if no points transfers
+          // Make sure we have initial values before rendering
+          if (!initialSpendingValues) {
+            const initialSpending = calculateInitialSpending()
+            setInitialSpendingValues(initialSpending)
+            setState(prev => ({
+              ...prev,
+              spendingSliders: initialSpending
+            }))
+          }
+          return renderStep7()
+        }
       case 7:
         return renderStep7()
       default:
@@ -624,10 +666,10 @@ const CardPicker: React.FC = () => {
           <div className="progress-bar">
             <div 
               className="progress-fill" 
-              style={{ width: `${(currentStep / 7) * 100}%` }}
+              style={{ width: `${(getCurrentStepNumber() / getTotalSteps()) * 100}%` }}
             ></div>
           </div>
-          <p className="progress-text">Step {currentStep} of 7</p>
+          <p className="progress-text">Step {getCurrentStepNumber()} of {getTotalSteps()}</p>
         </div>
       )}
 
@@ -646,7 +688,7 @@ const CardPicker: React.FC = () => {
             </button>
           )}
           
-          {currentStep < 7 ? (
+          {currentStep < getMaxStep() ? (
             <button 
               className="nav-button next-button"
               onClick={nextStep}
