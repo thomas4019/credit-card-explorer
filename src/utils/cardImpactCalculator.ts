@@ -7,6 +7,36 @@ import {
   spendCategories,
 } from './creditCardData'
 
+// Convert annual spending to monthly spending
+export const annualToMonthlySpending = (
+  annualSpending: Record<string, number>
+): Record<SpendCategory, number> => {
+  const monthlySpending: Record<SpendCategory, number> = {
+    dining: 0,
+    flights: 0,
+    hotels: 0,
+    otherTravel: 0,
+    groceries: 0,
+    gas: 0,
+    other: 0,
+  }
+  
+  // Map CardPicker categories to Maximizer categories
+  if (annualSpending.dining !== undefined) monthlySpending.dining = annualSpending.dining / 12
+  if (annualSpending.flights !== undefined) monthlySpending.flights = annualSpending.flights / 12
+  if (annualSpending.hotels !== undefined) monthlySpending.hotels = annualSpending.hotels / 12
+  if (annualSpending.otherTravel !== undefined) monthlySpending.otherTravel = annualSpending.otherTravel / 12
+  if (annualSpending.groceries !== undefined) monthlySpending.groceries = annualSpending.groceries / 12
+  if (annualSpending.gas !== undefined) monthlySpending.gas = annualSpending.gas / 12
+  
+  // Combine everything else categories into 'other'
+  if (annualSpending.everythingElse !== undefined) {
+    monthlySpending.other = annualSpending.everythingElse / 12
+  }
+  
+  return monthlySpending
+}
+
 export interface SpendRow {
   key: SpendCategory
   label: string

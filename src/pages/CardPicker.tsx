@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from 'react'
+import {
+  cardOptions,
+  annualFees,
+  otherBenefits,
+  pointValue,
+} from '../utils/creditCardData'
+import {
+  calculateCardImpact,
+  annualToMonthlySpending,
+  getEffectivePointValue,
+} from '../utils/cardImpactCalculator'
 
 type SpendingCategory = 'dining' | 'groceries' | 'bigBox' | 'gas' | 'retail' | 'travel' | 'other'
 type MonthlySpending = 'lessThan500' | '500to1000' | '1000to2000' | '2000to3000' | '3000to4000' | 'moreThan4000'
@@ -47,6 +58,8 @@ const CardPicker: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1)
   const [showResults, setShowResults] = useState(false)
   const [initialSpendingValues, setInitialSpendingValues] = useState<CardPickerState['spendingSliders'] | null>(null)
+  const [pointValues, setPointValues] = useState(pointValue)
+  const [assumptionsCollapsed, setAssumptionsCollapsed] = useState(true)
 
   // Auto-advance effect for single-selection questions
   useEffect(() => {
@@ -438,6 +451,9 @@ const CardPicker: React.FC = () => {
     const ticks = getSliderTicks()
     const total = Object.values(state.spendingSliders).reduce((sum, val) => sum + val, 0)
     
+    // Convert annual spending to monthly for card calculations
+    const monthlySpending = annualToMonthlySpending(state.spendingSliders)
+    
     // Use initial values for max calculations to avoid feedback loop
     const getSliderMax = (category: keyof CardPickerState['spendingSliders']) => {
       if (!initialSpendingValues) return 2000
@@ -445,11 +461,126 @@ const CardPicker: React.FC = () => {
       // Set max to 3x the initial value, but at least $2000 for reasonable range
       return Math.max(initialValue * 3, 2000)
     }
+
+    // Calculate card impact for each available card
+    const cardImpactAnalysis = cardOptions.map((card) => ({
+      ...card,
+      impact: calculateCardImpact(card.key, monthlySpending, [], pointValues),
+      annualFee: annualFees[card.key],
+      otherBenefits: otherBenefits[card.key],
+    })).sort((a, b) => b.impact - a.impact)
+
+    // Calculate total value with no cards (baseline)
+    const baselineValue = 0
+    const totalAnnualFees = 0
+    const totalOtherBenefits = 0
+    const netBaselineValue = baselineValue - totalAnnualFees + totalOtherBenefits
     
     return (
       <div className="step-content">
-        <h2 className="step-title">Adjust Your Annual Spending by Category</h2>
-        <p className="step-subtitle">Fine-tune the estimated spending amounts. Total: ${total.toLocaleString()}</p>
+        <h2 className="step-title">Credit Card Recommendations</h2>
+        <p className="step-subtitle">Based on your spending patterns, here are the best credit cards for you:</p>
+        
+        {/* Card Selection Section */}
+        <div className="card-selection-section">
+          <div className="card-grid">
+            {cardImpactAnalysis.map((card) => (
+              <div key={card.key} className="card-option">
+                <div className="card-header">
+                  <h3 className="card-name">{card.label}</h3>
+                  <div className={`card-impact ${card.impact >= 0 ? 'positive' : 'negative'}`}>
+                    {card.impact >= 0 ? '+' : ''}{card.impact.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                  </div>
+                </div>
+                <div className="card-details">
+                  <div className="card-fee">
+                    <span className="label">Annual Fee:</span>
+                    <span className="value">-{card.annualFee.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                  </div>
+                  <div className="card-benefits">
+                    <span className="label">Other Benefits:</span>
+                    <span className="value">+{card.otherBenefits.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                  </div>
+                  <div className="card-net-value">
+                    <span className="label">Net Annual Value:</span>
+                    <span className={`value ${card.impact >= 0 ? 'positive' : 'negative'}`}>
+                      {card.impact >= 0 ? '+' : ''}{card.impact.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="baseline-summary">
+            <p className="baseline-text">
+              <strong>Baseline (no cards):</strong> ${netBaselineValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+            </p>
+            <p className="baseline-note">
+              Values show the net annual benefit of adding each card to your wallet
+            </p>
+          </div>
+        </div>
+
+        {/* Points Value Assumptions Section */}
+        <div className="assumptions-section">
+          <div className="assumptions-header" onClick={() => setAssumptionsCollapsed(!assumptionsCollapsed)}>
+            <h3>Point Value Assumptions</h3>
+            <span className={`collapse-icon ${assumptionsCollapsed ? 'collapsed' : 'expanded'}`}>
+              {assumptionsCollapsed ? '▼' : '▲'}
+            </span>
+          </div>
+          {!assumptionsCollapsed && (
+            <div className="assumptions-content">
+              <p className="assumptions-description">
+                Adjust how much each point is worth in cents. These values affect the card recommendations above.
+              </p>
+              <div className="point-values-grid">
+                {cardOptions.map((card) => {
+                  const isChaseCard = ['chase', 'sapphire', 'sapphirereserve'].includes(card.key)
+                  const effectiveValue = getEffectivePointValue(card.key, [], pointValues)
+                  
+                  return (
+                    <div key={card.key} className="point-value-item">
+                      <div className="card-name">{card.label}</div>
+                      <div className="point-input-group">
+                        <input
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="0.1"
+                          value={pointValues[card.key]}
+                          onChange={(e) => setPointValues(prev => ({
+                            ...prev,
+                            [card.key]: parseFloat(e.target.value) || 0
+                          }))}
+                          className="point-input"
+                        />
+                        <span className="point-unit">¢</span>
+                        {isChaseCard && effectiveValue !== pointValues[card.key] && (
+                          <span className="effective-value">
+                            (Effective: {effectiveValue.toFixed(1)}¢)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="assumptions-footer">
+                <button
+                  className="reset-button"
+                  onClick={() => setPointValues(pointValue)}
+                >
+                  Reset to Defaults
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <h3 className="sliders-title">Fine-tune Your Spending</h3>
+        <p className="sliders-subtitle">Adjust the amounts below to see how they affect your card recommendations</p>
         
         <div className="sliders-container">
           {Object.entries(state.spendingSliders).map(([category, value]) => (
