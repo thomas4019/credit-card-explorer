@@ -1,5 +1,6 @@
 export type SpendCategory = 'dining' | 'flights' | 'hotels' | 'otherTravel' | 'groceries' | 'gas' | 'other'
 export type CardKey = 'chase' | 'amex' | 'sapphire' | 'sapphirereserve' | 'citi' | 'citipremier' | 'savor' | 'venturex' | 'amexbluecash'
+export type TransferPartner = 'delta' | 'united' | 'southwest' | 'hyatt'
 
 // Cards that should be hidden from the maximizer interface
 // These cards will still have all their data available for calculations,
@@ -149,11 +150,25 @@ export const otherBenefitsSummary: Record<CardKey, string> = {
   amexbluecash: '',
 }
 
+// Base point values (when no transfer partners are selected)
 export const pointValue: Record<CardKey, number> = {
   chase: 1.0,
-  amex: 1.5,
-  sapphire: 1.5,
-  sapphirereserve: 1.5,
+  amex: 1.0,
+  sapphire: 1.0,
+  sapphirereserve: 1.0,
+  citi: 1.0,
+  citipremier: 1.0,
+  savor: 1.0,
+  venturex: 1.0,
+  amexbluecash: 1.0,
+}
+
+// Elevated point values (when relevant transfer partners are selected)
+export const elevatedPointsValue: Record<CardKey, number> = {
+  chase: 1.0, // When United, Southwest, or Hyatt selected
+  amex: 1.25, // When Delta selected
+  sapphire: 1.5, // When United, Southwest, or Hyatt selected
+  sapphirereserve: 1.5, // When United, Southwest, or Hyatt selected
   citi: 1.0,
   citipremier: 1.85,
   savor: 1.0,
@@ -170,6 +185,41 @@ export const spendCategories: { key: SpendCategory; label: string }[] = [
   { key: 'gas', label: 'Gas' },
   { key: 'other', label: 'Other' },
 ]
+
+export const transferPartnerOptions: { key: TransferPartner; label: string; icon: string }[] = [
+  { key: 'delta', label: 'Delta', icon: '✈️' },
+  { key: 'united', label: 'United', icon: '✈️' },
+  { key: 'southwest', label: 'Southwest', icon: '✈️' },
+  { key: 'hyatt', label: 'Hyatt', icon: '🏨' },
+]
+
+// Get effective point value based on transfer partners
+export const getPointValueWithTransfers = (cardKey: CardKey, selectedTransferPartners: TransferPartner[]): number => {
+  if (selectedTransferPartners.length === 0) {
+    // No transfer partners selected, use base value of 1.0
+    return 1.0
+  }
+
+  // Check if any Chase-benefiting partners are selected (United, Southwest, Hyatt)
+  const chasePartners = selectedTransferPartners.some(partner => 
+    ['united', 'southwest', 'hyatt'].includes(partner)
+  )
+  
+  // Check if Delta is selected (benefits Amex)
+  const deltaSelected = selectedTransferPartners.includes('delta')
+
+  // Apply elevated values based on card type and selected partners
+  if (['chase', 'sapphire', 'sapphirereserve'].includes(cardKey) && chasePartners) {
+    return elevatedPointsValue[cardKey]
+  }
+  
+  if (cardKey === 'amex' && deltaSelected) {
+    return elevatedPointsValue[cardKey]
+  }
+
+  // For other cards or when relevant partners aren't selected, use base value of 1.0
+  return 1.0
+}
 
 export const defaultSpend: Record<SpendCategory, number> = {
   dining: 500,

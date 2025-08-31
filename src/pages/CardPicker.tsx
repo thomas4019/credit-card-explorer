@@ -5,11 +5,13 @@ import {
   otherBenefits,
   pointValue,
   rewardRates,
+  transferPartnerOptions,
+  getPointValueWithTransfers,
+  type TransferPartner as CreditCardTransferPartner,
 } from '../utils/creditCardData'
 import {
   calculateCardImpact,
   annualToMonthlySpending,
-  getEffectivePointValue,
   calculateSpendRows,
 } from '../utils/cardImpactCalculator'
 
@@ -464,8 +466,36 @@ const CardPicker: React.FC = () => {
       return Math.max(initialValue * 3, 2000)
     }
 
+    // Map step 6 transfer partners to creditCardData transfer partners
+    const mapToCreditCardTransferPartners = (stepSixPartners: TransferPartner[]): CreditCardTransferPartner[] => {
+      const mapping: Record<TransferPartner, CreditCardTransferPartner | null> = {
+        'hyatt': 'hyatt',
+        'virgin': 'delta', // Virgin benefits Delta transfers
+        'southwest': 'southwest',
+        'airCanada': 'united', // Air Canada uses United network
+        'delta': 'delta',
+        'americanAirlines': null // Not in our credit card transfer system
+      }
+      
+      return stepSixPartners
+        .map(partner => mapping[partner])
+        .filter((partner): partner is CreditCardTransferPartner => partner !== null)
+    }
+
+    // Get effective point values with transfer partners from step 6
+    const getEffectivePointValues = () => {
+      const mappedPartners = mapToCreditCardTransferPartners(state.transferPartners)
+      const effectiveValues: Record<string, number> = {}
+      cardOptions.forEach(card => {
+        effectiveValues[card.key] = getPointValueWithTransfers(card.key, mappedPartners)
+      })
+      return effectiveValues
+    }
+
     // Calculate spending rewards for each card (standalone)
     const calculateSpendingRewards = (cardKey: string) => {
+      const effectiveValues = getEffectivePointValues()
+      
       return Object.entries(monthlySpending).reduce((total, [category, monthlyAmount]) => {
         // Convert category names from monthly spending to spend categories
         let spendCategory = category
@@ -474,7 +504,7 @@ const CardPicker: React.FC = () => {
         const annualAmount = monthlyAmount * 12
         const rate = rewardRates[cardKey as keyof typeof rewardRates]?.[spendCategory as keyof typeof rewardRates[keyof typeof rewardRates]] || 1
         const points = annualAmount * rate
-        const effectiveValue = getEffectivePointValue(cardKey as keyof typeof pointValues, [], pointValues)
+        const effectiveValue = effectiveValues[cardKey] || 1
         const value = points * effectiveValue / 100
         return total + value
       }, 0)
@@ -514,7 +544,8 @@ const CardPicker: React.FC = () => {
         const totalBenefits = combo.reduce((sum, card) => sum + otherBenefits[card.key as keyof typeof otherBenefits], 0)
         
         // Calculate spending rewards with synergies by using the final card selection
-        const spendRows = calculateSpendRows(monthlySpending, cardKeys as any[], pointValues)
+        const effectiveValues = getEffectivePointValues()
+        const spendRows = calculateSpendRows(monthlySpending, cardKeys as any[], effectiveValues)
         const totalSpendingRewards = spendRows.reduce((sum, row) => sum + row.value, 0)
         
         const netValue = totalSpendingRewards - totalAnnualFees + totalBenefits
@@ -713,6 +744,38 @@ const CardPicker: React.FC = () => {
           </p>
         </div>
 
+        {/* Transfer Partners Interactive Section */}
+        <div className="transfer-partners-section">
+          <h3 className="transfer-partners-title">Transfer Partners</h3>
+          <p className="transfer-partners-subtitle">Toggle partners to see how they affect point values and recommendations</p>
+          <div className="transfer-partners-grid">
+            {transferPartnerOptions.map((partner) => (
+              <button
+                key={partner.key}
+                className={`transfer-partner-button ${state.transferPartners.includes(partner.key as TransferPartner) ? 'selected' : ''}`}
+                onClick={() => {
+                  // Update step 6 data when toggling
+                  setState(prev => ({
+                    ...prev,
+                    transferPartners: prev.transferPartners.includes(partner.key as TransferPartner)
+                      ? prev.transferPartners.filter(p => p !== partner.key)
+                      : [...prev.transferPartners, partner.key as TransferPartner]
+                  }))
+                }}
+              >
+                <span className="partner-icon">{partner.icon}</span>
+                <span className="partner-label">{partner.label}</span>
+                {state.transferPartners.includes(partner.key as TransferPartner) && (
+                  <span className="selected-check">✓</span>
+                )}
+              </button>
+            ))}
+          </div>
+          <p className="transfer-note">
+            Changes here update your recommendations in real-time and sync back to your questionnaire answers.
+          </p>
+        </div>
+
         {/* Points Value Assumptions Section */}
         <div className="assumptions-section">
           <div className="assumptions-header" onClick={() => setAssumptionsCollapsed(!assumptionsCollapsed)}>
@@ -724,33 +787,25 @@ const CardPicker: React.FC = () => {
           {!assumptionsCollapsed && (
             <div className="assumptions-content">
               <p className="assumptions-description">
-                Adjust how much each point is worth in cents. These values affect the card recommendations above.
+                Point values based on your selected transfer partners. Values automatically adjust when you select relevant partners in the questionnaire.
               </p>
               <div className="point-values-grid">
                 {cardOptions.map((card) => {
-                  const isChaseCard = ['chase', 'sapphire', 'sapphirereserve'].includes(card.key)
-                  const effectiveValue = getEffectivePointValue(card.key, [], pointValues)
+                  const mappedPartners = mapToCreditCardTransferPartners(state.transferPartners)
+                  const effectiveValue = getPointValueWithTransfers(card.key, mappedPartners)
+                  const baseValue = 1.0 // Base value is always 1.0¢
                   
                   return (
                     <div key={card.key} className="point-value-item">
                       <div className="card-name">{card.label}</div>
                       <div className="point-input-group">
-                        <input
-                          type="number"
-                          min="0"
-                          max="10"
-                          step="0.1"
-                          value={pointValues[card.key]}
-                          onChange={(e) => setPointValues(prev => ({
-                            ...prev,
-                            [card.key]: parseFloat(e.target.value) || 0
-                          }))}
-                          className="point-input"
-                        />
-                        <span className="point-unit">¢</span>
-                        {isChaseCard && effectiveValue !== pointValues[card.key] && (
-                          <span className="effective-value">
-                            (Effective: {effectiveValue.toFixed(1)}¢)
+                        <div className="current-value">
+                          <span className="value-number">{effectiveValue.toFixed(1)}</span>
+                          <span className="point-unit">¢</span>
+                        </div>
+                        {effectiveValue > baseValue && (
+                          <span className="transfer-boost">
+                            ↑ Transfer Boost
                           </span>
                         )}
                       </div>
