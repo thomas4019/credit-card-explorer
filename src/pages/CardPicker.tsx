@@ -4,11 +4,13 @@ import {
   annualFees,
   otherBenefits,
   pointValue,
+  rewardRates,
 } from '../utils/creditCardData'
 import {
   calculateCardImpact,
   annualToMonthlySpending,
   getEffectivePointValue,
+  calculateSpendRows,
 } from '../utils/cardImpactCalculator'
 
 type SpendingCategory = 'dining' | 'groceries' | 'bigBox' | 'gas' | 'retail' | 'travel' | 'other'
@@ -462,13 +464,90 @@ const CardPicker: React.FC = () => {
       return Math.max(initialValue * 3, 2000)
     }
 
-    // Calculate card impact for each available card
-    const cardImpactAnalysis = cardOptions.map((card) => ({
-      ...card,
-      impact: calculateCardImpact(card.key, monthlySpending, [], pointValues),
-      annualFee: annualFees[card.key],
-      otherBenefits: otherBenefits[card.key],
-    })).sort((a, b) => b.impact - a.impact)
+    // Calculate spending rewards for each card (standalone)
+    const calculateSpendingRewards = (cardKey: string) => {
+      return Object.entries(monthlySpending).reduce((total, [category, monthlyAmount]) => {
+        // Convert category names from monthly spending to spend categories
+        let spendCategory = category
+        if (category === 'everythingElse') spendCategory = 'other'
+        
+        const annualAmount = monthlyAmount * 12
+        const rate = rewardRates[cardKey as keyof typeof rewardRates]?.[spendCategory as keyof typeof rewardRates[keyof typeof rewardRates]] || 1
+        const points = annualAmount * rate
+        const effectiveValue = getEffectivePointValue(cardKey as keyof typeof pointValues, [], pointValues)
+        const value = points * effectiveValue / 100
+        return total + value
+      }, 0)
+    }
+
+    // Calculate best card combinations
+    const calculateCardCombinations = (numCards: number) => {
+      const combinations: Array<{
+        cards: Array<{key: string, label: string}>
+        totalSpendingRewards: number
+        totalAnnualFees: number
+        totalBenefits: number
+        netValue: number
+        cardKeys: string[]
+      }> = []
+
+      // Generate all combinations of the specified size
+      const generateCombinations = (arr: Array<{key: string, label: string}>, size: number): Array<Array<{key: string, label: string}>> => {
+        if (size === 1) return arr.map(card => [card])
+        
+        const result: Array<Array<{key: string, label: string}>> = []
+        for (let i = 0; i <= arr.length - size; i++) {
+          const first = arr[i]
+          const rest = generateCombinations(arr.slice(i + 1), size - 1)
+          rest.forEach(combo => result.push([first, ...combo]))
+        }
+        return result
+      }
+
+      const cardCombos = generateCombinations(cardOptions, numCards)
+
+      cardCombos.forEach(combo => {
+        const cardKeys = combo.map(card => card.key)
+        
+        // Calculate individual components for display
+        const totalAnnualFees = combo.reduce((sum, card) => sum + annualFees[card.key as keyof typeof annualFees], 0)
+        const totalBenefits = combo.reduce((sum, card) => sum + otherBenefits[card.key as keyof typeof otherBenefits], 0)
+        
+        // Calculate spending rewards with synergies by using the final card selection
+        const spendRows = calculateSpendRows(monthlySpending, cardKeys as any[], pointValues)
+        const totalSpendingRewards = spendRows.reduce((sum, row) => sum + row.value, 0)
+        
+        const netValue = totalSpendingRewards - totalAnnualFees + totalBenefits
+
+        combinations.push({
+          cards: combo,
+          totalSpendingRewards,
+          totalAnnualFees,
+          totalBenefits,
+          netValue,
+          cardKeys
+        })
+      })
+
+      return combinations.sort((a, b) => b.netValue - a.netValue)
+    }
+
+    // Calculate card analysis for each available card
+    const cardImpactAnalysis = cardOptions.map((card) => {
+      const spendingRewards = calculateSpendingRewards(card.key)
+      const annualFee = annualFees[card.key]
+      const benefits = otherBenefits[card.key]
+      const netValue = spendingRewards - annualFee + benefits
+      
+      return {
+        ...card,
+        spendingRewards,
+        annualFee,
+        otherBenefits: benefits,
+        netValue,
+        impact: calculateCardImpact(card.key, monthlySpending, [], pointValues), // Keep for sorting compatibility
+      }
+    }).sort((a, b) => b.netValue - a.netValue)
 
     // Calculate total value with no cards (baseline)
     const baselineValue = 0
@@ -479,47 +558,159 @@ const CardPicker: React.FC = () => {
     return (
       <div className="step-content">
         <h2 className="step-title">Credit Card Recommendations</h2>
-        <p className="step-subtitle">Based on your spending patterns, here are the best credit cards for you:</p>
+        <p className="step-subtitle">
+          {state.cardSetup === 'simple' 
+            ? 'Based on your spending patterns, here are the best single credit cards for you:'
+            : state.cardSetup === 'twoThree'
+            ? 'Based on your spending patterns, here are the best options including 2-card combinations (only shown if combination is $50+ better than individual cards):'
+            : 'Based on your spending patterns, here are the best options including 3-card combinations (only shown if combination is $50+ better than individual cards):'
+          }
+        </p>
         
         {/* Card Selection Section */}
         <div className="card-selection-section">
-          <div className="card-grid">
-            {cardImpactAnalysis.map((card) => (
-              <div key={card.key} className="card-option">
-                <div className="card-header">
-                  <h3 className="card-name">{card.label}</h3>
-                  <div className={`card-impact ${card.impact >= 0 ? 'positive' : 'negative'}`}>
-                    {card.impact >= 0 ? '+' : ''}{card.impact.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+          {state.cardSetup === 'simple' ? (
+            /* Single card recommendations */
+            <div className="card-grid">
+              {cardImpactAnalysis.slice(0, 5).map((card) => (
+                <div key={card.key} className="card-option">
+                  <div className="card-header">
+                    <h3 className="card-name">{card.label}</h3>
+                    <div className={`card-impact ${card.netValue >= 0 ? 'positive' : 'negative'}`}>
+                      {card.netValue >= 0 ? '+' : ''}{card.netValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                    </div>
+                  </div>
+                  <div className="card-details">
+                    <div className="card-spending-rewards">
+                      <span className="label">Spending Rewards:</span>
+                      <span className="value">+{card.spendingRewards.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                    </div>
+                    <div className="card-fee">
+                      <span className="label">Annual Fee:</span>
+                      <span className="value">-{card.annualFee.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                    </div>
+                    <div className="card-benefits">
+                      <span className="label">Other Benefits:</span>
+                      <span className="value">+{card.otherBenefits.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="card-details">
-                  <div className="card-fee">
-                    <span className="label">Annual Fee:</span>
-                    <span className="value">-{card.annualFee.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
-                  </div>
-                  <div className="card-benefits">
-                    <span className="label">Other Benefits:</span>
-                    <span className="value">+{card.otherBenefits.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
-                  </div>
-                  <div className="card-net-value">
-                    <span className="label">Net Annual Value:</span>
-                    <span className={`value ${card.impact >= 0 ? 'positive' : 'negative'}`}>
-                      {card.impact >= 0 ? '+' : ''}{card.impact.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            /* Card combination recommendations */
+            <div className="combination-grid">
+              {(() => {
+                const numCards = state.cardSetup === 'twoThree' ? 2 : 3
+                const allCombinations = calculateCardCombinations(numCards)
+                
+                // Filter combinations - only include if combo is at least $50 better than the best individual card
+                const validCombinations = allCombinations.filter(combo => {
+                  // Calculate value of each card individually
+                  const individualValues = combo.cards.map(card => {
+                    const cardKey = card.key as keyof typeof annualFees
+                    return calculateSpendingRewards(card.key) - annualFees[cardKey] + otherBenefits[cardKey]
+                  })
+                  
+                  // Find the maximum individual card value
+                  const maxIndividualValue = Math.max(...individualValues)
+                  
+                  // Only include combination if it's at least $50 better than the best individual card
+                  const advantage = combo.netValue - maxIndividualValue
+                  return advantage >= 50
+                })
+                
+                // Get top single card for comparison
+                const topSingleCard = cardImpactAnalysis[0]
+                
+                // Create a mixed list: top single card + valid combinations
+                const mixedOptions = [
+                  {
+                    type: 'single' as const,
+                    card: topSingleCard,
+                    netValue: topSingleCard.netValue
+                  },
+                  ...validCombinations.slice(0, 4).map(combo => ({
+                    type: 'combination' as const,
+                    combo,
+                    netValue: combo.netValue
+                  }))
+                ].sort((a, b) => b.netValue - a.netValue).slice(0, 5)
+                
+                return mixedOptions.map((option) => {
+                  if (option.type === 'single') {
+                    const card = option.card
+                    return (
+                      <div key={`single-${card.key}`} className="card-option single-in-combo">
+                        <div className="card-header">
+                          <h3 className="card-name">{card.label} <span className="single-badge">Single Card</span></h3>
+                          <div className={`card-impact ${card.netValue >= 0 ? 'positive' : 'negative'}`}>
+                            {card.netValue >= 0 ? '+' : ''}{card.netValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                          </div>
+                        </div>
+                        <div className="card-details">
+                          <div className="card-spending-rewards">
+                            <span className="label">Spending Rewards:</span>
+                            <span className="value">+{card.spendingRewards.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                          </div>
+                          <div className="card-fee">
+                            <span className="label">Annual Fee:</span>
+                            <span className="value">-{card.annualFee.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                          </div>
+                          <div className="card-benefits">
+                            <span className="label">Other Benefits:</span>
+                            <span className="value">+{card.otherBenefits.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  } else {
+                    const combo = option.combo
+                    return (
+                      <div key={combo.cardKeys.join('-')} className="combination-option">
+                        <div className="combination-header">
+                          <h3 className="combination-title">
+                            {combo.cards.map(card => card.label).join(' + ')}
+                          </h3>
+                          <div className={`combination-impact ${combo.netValue >= 0 ? 'positive' : 'negative'}`}>
+                            {combo.netValue >= 0 ? '+' : ''}{combo.netValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                          </div>
+                        </div>
+                        <div className="combination-details">
+                          <div className="combination-spending-rewards">
+                            <span className="label">Total Spending Rewards:</span>
+                            <span className="value">+{combo.totalSpendingRewards.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                          </div>
+                          <div className="combination-fees">
+                            <span className="label">Total Annual Fees:</span>
+                            <span className="value">-{combo.totalAnnualFees.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                          </div>
+                          <div className="combination-benefits">
+                            <span className="label">Total Benefits:</span>
+                            <span className="value">+{combo.totalBenefits.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                          </div>
+                        </div>
+                        <div className="combination-cards">
+                          {combo.cards.map(card => (
+                            <span key={card.key} className="card-chip">{card.label}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                })
+              })()}
+            </div>
+          )}
+        </div>
           
-          <div className="baseline-summary">
-            <p className="baseline-text">
-              <strong>Baseline (no cards):</strong> ${netBaselineValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-            </p>
-            <p className="baseline-note">
-              Values show the net annual benefit of adding each card to your wallet
-            </p>
-          </div>
+        <div className="baseline-summary">
+          <p className="baseline-text">
+            <strong>Baseline (no cards):</strong> ${netBaselineValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+          </p>
+          <p className="baseline-note">
+            Values show the net annual benefit of adding each card to your wallet
+          </p>
         </div>
 
         {/* Points Value Assumptions Section */}
